@@ -217,7 +217,13 @@
             transition: var(--transition);
         }
 
-        .backup-btn:hover {
+        .backup-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .backup-btn:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0, 136, 204, 0.4);
         }
@@ -295,12 +301,17 @@
             transition: var(--transition);
         }
 
+        .icon-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
         .icon-btn.edit { background: #fff3e0; color: #f57c00; }
-        .icon-btn.edit:hover { background: #f57c00; color: white; }
+        .icon-btn.edit:hover:not(:disabled) { background: #f57c00; color: white; }
         .icon-btn.delete { background: #ffebee; color: #c62828; }
-        .icon-btn.delete:hover { background: #c62828; color: white; }
+        .icon-btn.delete:hover:not(:disabled) { background: #c62828; color: white; }
         .icon-btn.view { background: #e8f5e9; color: #2e7d32; }
-        .icon-btn.view:hover { background: #2e7d32; color: white; }
+        .icon-btn.view:hover:not(:disabled) { background: #2e7d32; color: white; }
 
         /* Tabs */
         .tabs {
@@ -403,12 +414,18 @@
             gap: 8px;
         }
 
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         .btn-primary {
             background: linear-gradient(135deg, var(--primary), var(--accent));
             color: var(--white);
         }
 
-        .btn-primary:hover {
+        .btn-primary:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(44, 120, 108, 0.3);
         }
@@ -468,48 +485,86 @@
             cursor: pointer;
         }
 
-        .message {
-            padding: 12px;
-            border-radius: 10px;
-            margin: 15px 0;
-            display: none;
-        }
-
-        .message.success {
-            background: #e8f5e9;
-            color: var(--success);
-            border: 1px solid #c8e6c9;
-        }
-
-        .message.error {
-            background: #ffebee;
-            color: var(--danger);
-            border: 1px solid #ffcdd2;
-        }
-
-        .backup-message {
+        /* Loading Overlay */
+        .loading-overlay {
             position: fixed;
-            bottom: 20px;
-            left: 20px;
-            right: 20px;
-            background: var(--primary);
-            color: white;
-            padding: 12px 20px;
-            border-radius: 12px;
-            text-align: center;
-            z-index: 2000;
-            animation: slideUp 0.3s ease;
-            max-width: 400px;
-            margin: 0 auto;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 3000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: 15px;
         }
 
-        .backup-message.loading { background: #ff9800; }
-        .backup-message.success { background: #2e7d32; }
-        .backup-message.error { background: #c62828; }
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 5px solid rgba(255,255,255,0.3);
+            border-top: 5px solid var(--secondary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-text {
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+            background: rgba(0,0,0,0.7);
+            padding: 8px 20px;
+            border-radius: 30px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Toast Message */
+        .toast-message {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary-dark);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 40px;
+            z-index: 3500;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            animation: slideUp 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .toast-message.success { background: #2e7d32; }
+        .toast-message.error { background: #c62828; }
+        .toast-message.warning { background: #ff9800; }
 
         @keyframes slideUp {
-            from { transform: translateY(100px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+            from { transform: translateX(-50%) translateY(100px); opacity: 0; }
+            to { transform: translateX(-50%) translateY(0); opacity: 1; }
+        }
+
+        /* Button loading state */
+        .btn-loading {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        .btn-loading i {
+            animation: spin 1s linear infinite;
         }
 
         @media (max-width: 768px) {
@@ -518,6 +573,7 @@
             .filter-buttons { justify-content: center; }
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
             .tabs { flex-wrap: nowrap; overflow-x: auto; }
+            .toast-message { white-space: normal; text-align: center; max-width: 90%; }
         }
     </style>
 </head>
@@ -577,10 +633,9 @@
         <div class="tab-content" id="add-student">
             <div class="card">
                 <h3>➕ إضافة طالب جديد</h3>
-                <div class="form-group"><label class="form-label">اسم الطالب</label><input type="text" id="studentName" class="form-input"></div>
+                <div class="form-group"><label class="form-label">اسم الطالب</label><input type="text" id="studentName" class="form-input" placeholder="أدخل الاسم كاملاً"></div>
                 <div class="form-group"><label class="form-label">المستوى</label><select id="studentLevel" class="form-select"><option>مبتدئ</option><option>متوسط</option><option>متقدم</option></select></div>
-                <button id="saveStudentBtn" class="btn btn-primary">💾 حفظ</button>
-                <div id="studentMessage" class="message"></div>
+                <button id="saveStudentBtn" class="btn btn-primary">💾 حفظ الطالب</button>
             </div>
         </div>
 
@@ -590,11 +645,10 @@
                 <h3>📝 إضافة اختبار</h3>
                 <div class="form-group"><label class="form-label">اختر الطالب</label><select id="testStudent" class="form-select"></select></div>
                 <div class="form-group"><label class="form-label">نوع الاختبار</label><select id="testType" class="form-select"><option value="lessonTests">اختبار درس</option><option value="tajweedTests">اختبار تجويد</option><option value="memorizationTests">اختبار قرآن</option></select></div>
-                <div class="form-group"><label class="form-label">اسم الاختبار</label><input type="text" id="testName" class="form-input"></div>
-                <div class="form-group"><label class="form-label">النتيجة</label><input type="number" id="testResult" class="form-input" min="0" max="100"></div>
+                <div class="form-group"><label class="form-label">اسم الاختبار</label><input type="text" id="testName" class="form-input" placeholder="مثال: سورة الفاتحة"></div>
+                <div class="form-group"><label class="form-label">النتيجة (من 100)</label><input type="number" id="testResult" class="form-input" min="0" max="100"></div>
                 <div class="form-group"><label class="form-label">التاريخ</label><input type="date" id="testDate" class="form-input"></div>
-                <button id="saveTestBtn" class="btn btn-primary">💾 حفظ</button>
-                <div id="testMessage" class="message"></div>
+                <button id="saveTestBtn" class="btn btn-primary">💾 حفظ الاختبار</button>
             </div>
         </div>
 
@@ -605,10 +659,9 @@
                 <div class="form-group"><label class="form-label">اختر الطالب</label><select id="pagesStudent" class="form-select"></select></div>
                 <div class="form-group"><label class="form-label">الشهر</label><select id="pagesMonth" class="form-select"><option value="1">يناير</option><option value="2">فبراير</option><option value="3">مارس</option><option value="4">أبريل</option><option value="5">مايو</option><option value="6">يونيو</option><option value="7">يوليو</option><option value="8">أغسطس</option><option value="9">سبتمبر</option><option value="10">أكتوبر</option><option value="11">نوفمبر</option><option value="12">ديسمبر</option></select></div>
                 <div class="form-group"><label class="form-label">السنة</label><input type="number" id="pagesYear" class="form-input" value="2025"></div>
-                <div class="form-group"><label class="form-label">عدد الصفحات</label><input type="number" id="pagesCount" class="form-input" min="0"></div>
+                <div class="form-group"><label class="form-label">عدد الصفحات المحفوظة</label><input type="number" id="pagesCount" class="form-input" min="0" placeholder="مثال: 5"></div>
                 <div class="form-group"><label class="form-label">الهدف الشهري</label><input type="number" id="pagesGoal" class="form-input" value="20"></div>
-                <button id="savePagesBtn" class="btn btn-primary">💾 حفظ</button>
-                <div id="pagesMessage" class="message"></div>
+                <button id="savePagesBtn" class="btn btn-primary">💾 حفظ البيانات</button>
             </div>
         </div>
 
@@ -620,16 +673,15 @@
         <!-- Add Competition Tab -->
         <div class="tab-content" id="add-competition">
             <div class="card">
-                <h3>✨ إضافة مسابقة</h3>
-                <div class="form-group"><label class="form-label">العنوان</label><input type="text" id="compTitle" class="form-input"></div>
-                <div class="form-group"><label class="form-label">الوصف</label><textarea id="compDesc" class="form-textarea"></textarea></div>
-                <div class="form-group"><label class="form-label">النوع</label><input type="text" id="compType" class="form-input"></div>
+                <h3>✨ إضافة مسابقة جديدة</h3>
+                <div class="form-group"><label class="form-label">عنوان المسابقة</label><input type="text" id="compTitle" class="form-input" placeholder="مثال: مسابقة تلاوة القرآن"></div>
+                <div class="form-group"><label class="form-label">الوصف</label><textarea id="compDesc" class="form-textarea" placeholder="وصف المسابقة"></textarea></div>
+                <div class="form-group"><label class="form-label">النوع</label><input type="text" id="compType" class="form-input" placeholder="تلاوة / حفظ / تجويد"></div>
                 <div class="form-group"><label class="form-label">الحالة</label><select id="compStatus" class="form-select"><option>قادمة</option><option>جارية</option><option>منتهية</option></select></div>
                 <div class="form-group"><label class="form-label">تاريخ البدء</label><input type="date" id="compDate" class="form-input"></div>
                 <div class="form-group"><label class="form-label">تاريخ الانتهاء</label><input type="date" id="compEndDate" class="form-input"></div>
-                <div class="form-group"><label class="form-label">المكان</label><input type="text" id="compLocation" class="form-input"></div>
-                <button id="saveCompetitionBtn" class="btn btn-primary">💾 حفظ</button>
-                <div id="compMessage" class="message"></div>
+                <div class="form-group"><label class="form-label">المكان</label><input type="text" id="compLocation" class="form-input" placeholder="مكان إقامة المسابقة"></div>
+                <button id="saveCompetitionBtn" class="btn btn-primary">💾 حفظ المسابقة</button>
             </div>
         </div>
 
@@ -641,22 +693,33 @@
         <!-- Add Achievement Tab -->
         <div class="tab-content" id="add-achievement">
             <div class="card">
-                <h3>🌟 إضافة إنجاز</h3>
-                <div class="form-group"><label class="form-label">العنوان</label><input type="text" id="achTitle" class="form-input"></div>
-                <div class="form-group"><label class="form-label">الوصف</label><textarea id="achDesc" class="form-textarea"></textarea></div>
-                <div class="form-group"><label class="form-label">الكلمات الدلالية</label><input type="text" id="achTags" class="form-input"></div>
+                <h3>🌟 إضافة إنجاز جديد</h3>
+                <div class="form-group"><label class="form-label">عنوان الإنجاز</label><input type="text" id="achTitle" class="form-input" placeholder="مثال: حفظ القرآن كاملاً"></div>
+                <div class="form-group"><label class="form-label">الوصف</label><textarea id="achDesc" class="form-textarea" placeholder="وصف الإنجاز"></textarea></div>
+                <div class="form-group"><label class="form-label">الكلمات الدلالية</label><input type="text" id="achTags" class="form-input" placeholder="مفصولة بفواصل، مثال: حفظ, قرآن, تلاوة"></div>
                 <div class="form-group"><label class="form-label">الفئة</label><select id="achCategory" class="form-select"><option>عام</option><option>مسابقات</option><option>حفظ</option><option>تلاوة</option></select></div>
                 <div class="form-group"><label class="form-label">التاريخ</label><input type="date" id="achDate" class="form-input"></div>
-                <button id="saveAchievementBtn" class="btn btn-primary">💾 حفظ</button>
-                <div id="achMessage" class="message"></div>
+                <button id="saveAchievementBtn" class="btn btn-primary">💾 حفظ الإنجاز</button>
             </div>
         </div>
     </main>
 
-    <!-- Modals -->
-    <div id="editStudentModal" class="modal"><div class="modal-content"><div class="modal-header"><h3>✏️ تعديل الطالب</h3><button class="close-btn" onclick="closeModal('editStudentModal')">&times;</button></div><input type="hidden" id="editStudentId"><div class="form-group"><label>الاسم</label><input type="text" id="editStudentName" class="form-input"></div><div class="form-group"><label>المستوى</label><select id="editStudentLevel" class="form-select"><option>مبتدئ</option><option>متوسط</option><option>متقدم</option></select></div><button id="saveEditStudentBtn" class="btn btn-primary">💾 حفظ</button><button onclick="closeModal('editStudentModal')" class="btn btn-danger">إلغاء</button></div></div>
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text" id="loadingText">جاري المعالجة...</div>
+    </div>
 
-    <div id="addWinnerModal" class="modal"><div class="modal-content"><div class="modal-header"><h3>🏅 إضافة فائز</h3><button class="close-btn" onclick="closeModal('addWinnerModal')">&times;</button></div><input type="hidden" id="winnerCompetitionId"><div class="form-group"><label>اسم الفائز</label><input type="text" id="winnerName" class="form-input"></div><div class="form-group"><label>المركز</label><input type="text" id="winnerPosition" class="form-input"></div><div class="form-group"><label>الجائزة</label><input type="text" id="winnerPrize" class="form-input"></div><button id="saveWinnerBtn" class="btn btn-primary">💾 حفظ</button></div></div>
+    <!-- Toast Message -->
+    <div id="toastMessage" class="toast-message">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastText">تم بنجاح</span>
+    </div>
+
+    <!-- Modals -->
+    <div id="editStudentModal" class="modal"><div class="modal-content"><div class="modal-header"><h3>✏️ تعديل الطالب</h3><button class="close-btn" onclick="closeModal('editStudentModal')">&times;</button></div><input type="hidden" id="editStudentId"><div class="form-group"><label>الاسم</label><input type="text" id="editStudentName" class="form-input"></div><div class="form-group"><label>المستوى</label><select id="editStudentLevel" class="form-select"><option>مبتدئ</option><option>متوسط</option><option>متقدم</option></select></div><button id="saveEditStudentBtn" class="btn btn-primary">💾 حفظ التعديلات</button><button onclick="closeModal('editStudentModal')" class="btn btn-danger">إلغاء</button></div></div>
+
+    <div id="addWinnerModal" class="modal"><div class="modal-content"><div class="modal-header"><h3>🏅 إضافة فائز</h3><button class="close-btn" onclick="closeModal('addWinnerModal')">&times;</button></div><input type="hidden" id="winnerCompetitionId"><div class="form-group"><label>اسم الطالب الفائز</label><input type="text" id="winnerName" class="form-input" placeholder="أدخل اسم الطالب"></div><div class="form-group"><label>المركز</label><input type="text" id="winnerPosition" class="form-input" placeholder="مثال: المركز الأول"></div><div class="form-group"><label>الجائزة</label><input type="text" id="winnerPrize" class="form-input" placeholder="مثال: جائزة مالية"></div><button id="saveWinnerBtn" class="btn btn-primary">💾 حفظ الفائز</button></div></div>
 
     <script type="module">
         import { db, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, where, serverTimestamp } from './firebase-config.js';
@@ -668,6 +731,53 @@
         let studentsData = [];
         let currentFilter = 'all';
         let currentSearchTerm = '';
+        let isProcessing = false;
+
+        // ========== دوال واجهة المستخدم ==========
+        function showLoading(text = 'جاري المعالجة...') {
+            const overlay = document.getElementById('loadingOverlay');
+            const loadingText = document.getElementById('loadingText');
+            loadingText.textContent = text;
+            overlay.classList.add('active');
+        }
+
+        function hideLoading() {
+            const overlay = document.getElementById('loadingOverlay');
+            overlay.classList.remove('active');
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toastMessage');
+            const toastText = document.getElementById('toastText');
+            const icon = toast.querySelector('i');
+            
+            toastText.textContent = message;
+            toast.className = `toast-message ${type}`;
+            
+            if (type === 'success') icon.className = 'fas fa-check-circle';
+            else if (type === 'error') icon.className = 'fas fa-exclamation-circle';
+            else icon.className = 'fas fa-info-circle';
+            
+            toast.style.display = 'flex';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        function setButtonLoading(button, isLoading, originalText = null) {
+            if (isLoading) {
+                button.disabled = true;
+                button.classList.add('btn-loading');
+                if (originalText) button.dataset.originalText = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> جاري...';
+            } else {
+                button.disabled = false;
+                button.classList.remove('btn-loading');
+                if (button.dataset.originalText) {
+                    button.innerHTML = button.dataset.originalText;
+                }
+            }
+        }
 
         // ========== دوال مساعدة ==========
         function formatDateForExport(timestamp) {
@@ -711,20 +821,20 @@
             } catch(e) {}
         }
 
-        function showBackupMessage(text, type) {
-            const old = document.querySelector('.backup-message');
-            if (old) old.remove();
-            const div = document.createElement('div');
-            div.className = `backup-message ${type}`;
-            div.innerHTML = text;
-            document.body.appendChild(div);
-            if (type !== 'loading') setTimeout(() => div.remove(), 5000);
-        }
-
         // ========== النسخ الاحتياطي إلى تليجرام ==========
         async function exportToTelegram() {
+            if (isProcessing) {
+                showToast('يوجد عملية قيد التنفيذ، انتظر قليلاً', 'warning');
+                return;
+            }
+            
+            const backupBtn = document.getElementById('backupBtn');
+            
             try {
-                showBackupMessage('🔄 جاري إنشاء النسخة الاحتياطية...', 'loading');
+                isProcessing = true;
+                setButtonLoading(backupBtn, true);
+                showLoading('🔄 جاري إنشاء النسخة الاحتياطية...');
+                
                 await sendMessageToTelegram("🔄 <b>بدء النسخة الاحتياطية</b>\n📅 " + new Date().toLocaleString('ar-EG'));
 
                 const studentsSnap = await getDocs(collection(db, "students"));
@@ -763,10 +873,15 @@
                 await sendFileToTelegram(convertToCSV(achData, ['العنوان','الفئة','التاريخ','الإعجابات']), `الإنجازات_${new Date().toISOString().slice(0,10)}.csv`);
 
                 await sendMessageToTelegram(`✅ <b>تم إنشاء النسخة الاحتياطية بنجاح!</b>\n\n📊 الملخص:\n👨‍🎓 ${students.length} طالب\n🏆 ${competitions.length} مسابقة\n🌟 ${achievements.length} إنجاز\n📝 ${testsData.length} اختبار`);
-                showBackupMessage('✅ تم إرسال النسخة الاحتياطية إلى تليجرام', 'success');
+                showToast('✅ تم إرسال النسخة الاحتياطية إلى تليجرام', 'success');
+                
             } catch(e) {
-                showBackupMessage(`❌ خطأ: ${e.message}`, 'error');
+                showToast(`❌ خطأ: ${e.message}`, 'error');
                 await sendMessageToTelegram(`❌ فشل النسخة الاحتياطية: ${e.message}`);
+            } finally {
+                hideLoading();
+                setButtonLoading(backupBtn, false);
+                isProcessing = false;
             }
         }
 
@@ -785,13 +900,20 @@
             console.log(`📅 سيتم الإرسال التلقائي بعد ${Math.floor(delay / 1000 / 60 / 60)} ساعة`);
         }
 
-        // ========== وظائف إدارة البيانات ==========
+        // ========== وظائف إدارة البيانات مع شريط التحميل ==========
         async function fetchStudents() {
-            const snap = await getDocs(collection(db, "students"));
-            studentsData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-            renderStudents();
-            updateStudentSelects();
-            updateStats();
+            try {
+                showLoading('جاري تحميل بيانات الطلاب...');
+                const snap = await getDocs(collection(db, "students"));
+                studentsData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                renderStudents();
+                updateStudentSelects();
+                updateStats();
+                hideLoading();
+            } catch (error) {
+                hideLoading();
+                showToast('❌ فشل تحميل بيانات الطلاب', 'error');
+            }
         }
 
         function renderStudents() {
@@ -801,7 +923,7 @@
                 filtered = filtered.filter(s => (s.name?.toLowerCase().includes(term)) || (s.code?.includes(term)));
             }
             const tbody = document.getElementById('studentsTableBody');
-            if (!filtered.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;">لا توجد نتائج</td></tr>'; return; }
+            if (!filtered.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;">📭 لا توجد نتائج مطابقة</td></tr>'; return; }
             tbody.innerHTML = filtered.map((s, i) => {
                 const totalTests = (s.lessonTests?.length||0)+(s.tajweedTests?.length||0)+(s.memorizationTests?.length||0);
                 const totalPages = (s.monthlyPages||[]).reduce((sum,p)=>sum+(p.pages||0),0);
@@ -814,11 +936,11 @@
                     <td>${totalTests}</td>
                     <td>${totalPages}</td>
                     <td class="action-buttons">
-                        <button class="icon-btn view" onclick="viewStudent('${s.id}')"><i class="fas fa-eye"></i></button>
-                        <button class="icon-btn edit" onclick="openEditStudent('${s.id}')"><i class="fas fa-edit"></i></button>
-                        <button class="icon-btn delete" onclick="deleteStudent('${s.id}')"><i class="fas fa-trash"></i></button>
+                        <button class="icon-btn view" onclick="viewStudent('${s.id}')" title="عرض"><i class="fas fa-eye"></i></button>
+                        <button class="icon-btn edit" onclick="openEditStudent('${s.id}')" title="تعديل"><i class="fas fa-edit"></i></button>
+                        <button class="icon-btn delete" onclick="deleteStudent('${s.id}')" title="حذف"><i class="fas fa-trash"></i></button>
                     </td>
-                </tr>`;
+                </table>`;
             }).join('');
         }
 
@@ -839,114 +961,389 @@
             });
         }
 
-        window.viewStudent = (id) => { const s = studentsData.find(s=>s.id===id); if(s){ localStorage.setItem('currentStudent',JSON.stringify(s)); window.open('student.html','_blank'); } };
-        window.openEditStudent = (id) => { const s = studentsData.find(s=>s.id===id); if(s){ document.getElementById('editStudentId').value=id; document.getElementById('editStudentName').value=s.name||''; document.getElementById('editStudentLevel').value=s.overallLevel||'مبتدئ'; document.getElementById('editStudentModal').style.display='flex'; } };
-        window.deleteStudent = async(id) => { if(confirm('حذف الطالب؟')){ await deleteDoc(doc(db,"students",id)); fetchStudents(); } };
-        window.deleteCompetition = async(id) => { if(confirm('حذف المسابقة؟')){ await deleteDoc(doc(db,"competitions",id)); fetchCompetitions(); updateStats(); } };
-        window.deleteAchievement = async(id) => { if(confirm('حذف الإنجاز؟')){ await deleteDoc(doc(db,"achievements",id)); fetchAchievements(); updateStats(); } };
-        window.openAddWinner = (id) => { document.getElementById('winnerCompetitionId').value=id; document.getElementById('addWinnerModal').style.display='flex'; };
-        window.closeModal = (id) => document.getElementById(id).style.display='none';
-
-        document.getElementById('saveEditStudentBtn').addEventListener('click', async() => {
-            const id = document.getElementById('editStudentId').value;
-            await updateDoc(doc(db,"students",id), { name: document.getElementById('editStudentName').value, overallLevel: document.getElementById('editStudentLevel').value });
-            closeModal('editStudentModal'); fetchStudents();
-        });
-
-        document.getElementById('saveStudentBtn').addEventListener('click', async() => {
+        // ========== إضافة طالب ==========
+        async function addStudent() {
+            if (isProcessing) { showToast('يوجد عملية قيد التنفيذ', 'warning'); return; }
+            
             const name = document.getElementById('studentName').value.trim();
-            if(!name) return;
-            const code = Math.floor(100000+Math.random()*900000).toString();
-            await addDoc(collection(db,"students"), { name, code, overallLevel: document.getElementById('studentLevel').value, lessonTests:[], tajweedTests:[], memorizationTests:[], monthlyPages:[], createdAt:serverTimestamp() });
-            document.getElementById('studentName').value=''; fetchStudents();
-        });
+            if (!name) { showToast('⚠️ الرجاء إدخال اسم الطالب', 'error'); return; }
+            
+            const btn = document.getElementById('saveStudentBtn');
+            try {
+                isProcessing = true;
+                setButtonLoading(btn, true);
+                showLoading('جاري إضافة الطالب...');
+                
+                const code = Math.floor(100000 + Math.random() * 900000).toString();
+                await addDoc(collection(db, "students"), {
+                    name, code, overallLevel: document.getElementById('studentLevel').value,
+                    lessonTests: [], tajweedTests: [], memorizationTests: [], monthlyPages: [],
+                    createdAt: serverTimestamp()
+                });
+                
+                document.getElementById('studentName').value = '';
+                showToast(`✅ تم إضافة الطالب بنجاح. الكود: ${code}`, 'success');
+                await fetchStudents();
+                
+            } catch (error) {
+                showToast(`❌ خطأ: ${error.message}`, 'error');
+            } finally {
+                hideLoading();
+                setButtonLoading(btn, false);
+                isProcessing = false;
+            }
+        }
 
-        document.getElementById('saveTestBtn').addEventListener('click', async() => {
+        // ========== إضافة اختبار ==========
+        async function addTest() {
+            if (isProcessing) { showToast('يوجد عملية قيد التنفيذ', 'warning'); return; }
+            
             const studentId = document.getElementById('testStudent').value;
-            const testType = document.getElementById('testType').value;
             const testName = document.getElementById('testName').value.trim();
             const result = document.getElementById('testResult').value;
-            if(!studentId||!testName||!result) return;
-            const student = studentsData.find(s=>s.id===studentId);
-            const newTest = { testName, result: parseInt(result), date: document.getElementById('testDate').value || new Date().toISOString().split('T')[0] };
-            const current = student[testType]||[];
-            current.push(newTest);
-            await updateDoc(doc(db,"students",studentId), { [testType]: current });
-            document.getElementById('testName').value=''; fetchStudents();
-        });
+            
+            if (!studentId || !testName || !result) { showToast('⚠️ الرجاء تعبئة جميع الحقول', 'error'); return; }
+            
+            const btn = document.getElementById('saveTestBtn');
+            try {
+                isProcessing = true;
+                setButtonLoading(btn, true);
+                showLoading('جاري إضافة الاختبار...');
+                
+                const student = studentsData.find(s => s.id === studentId);
+                const testType = document.getElementById('testType').value;
+                const newTest = { testName, result: parseInt(result), date: document.getElementById('testDate').value || new Date().toISOString().split('T')[0] };
+                const current = student[testType] || [];
+                current.push(newTest);
+                await updateDoc(doc(db, "students", studentId), { [testType]: current });
+                
+                document.getElementById('testName').value = '';
+                document.getElementById('testResult').value = '';
+                showToast('✅ تم إضافة الاختبار بنجاح', 'success');
+                await fetchStudents();
+                
+            } catch (error) {
+                showToast(`❌ خطأ: ${error.message}`, 'error');
+            } finally {
+                hideLoading();
+                setButtonLoading(btn, false);
+                isProcessing = false;
+            }
+        }
 
-        document.getElementById('savePagesBtn').addEventListener('click', async() => {
+        // ========== إضافة صفحات شهرية ==========
+        async function addMonthlyPages() {
+            if (isProcessing) { showToast('يوجد عملية قيد التنفيذ', 'warning'); return; }
+            
             const studentId = document.getElementById('pagesStudent').value;
             const month = parseInt(document.getElementById('pagesMonth').value);
             const year = parseInt(document.getElementById('pagesYear').value);
             const pages = parseInt(document.getElementById('pagesCount').value);
-            if(!studentId||isNaN(pages)) return;
-            const student = studentsData.find(s=>s.id===studentId);
-            const current = student.monthlyPages||[];
-            const idx = current.findIndex(p=>p.month===month&&p.year===year);
-            if(idx!==-1) current[idx] = { month, year, pages, goal: parseInt(document.getElementById('pagesGoal').value), lastUpdate:new Date().toISOString() };
-            else current.push({ month, year, pages, goal: parseInt(document.getElementById('pagesGoal').value), lastUpdate:new Date().toISOString() });
-            await updateDoc(doc(db,"students",studentId), { monthlyPages: current });
-            document.getElementById('pagesCount').value=''; fetchStudents();
-        });
+            
+            if (!studentId || isNaN(pages)) { showToast('⚠️ الرجاء تعبئة الحقول', 'error'); return; }
+            
+            const btn = document.getElementById('savePagesBtn');
+            try {
+                isProcessing = true;
+                setButtonLoading(btn, true);
+                showLoading('جاري حفظ البيانات...');
+                
+                const student = studentsData.find(s => s.id === studentId);
+                const current = student.monthlyPages || [];
+                const idx = current.findIndex(p => p.month === month && p.year === year);
+                const goal = parseInt(document.getElementById('pagesGoal').value);
+                
+                if (idx !== -1) current[idx] = { month, year, pages, goal, lastUpdate: new Date().toISOString() };
+                else current.push({ month, year, pages, goal, lastUpdate: new Date().toISOString() });
+                
+                await updateDoc(doc(db, "students", studentId), { monthlyPages: current });
+                document.getElementById('pagesCount').value = '';
+                showToast('✅ تم حفظ البيانات بنجاح', 'success');
+                await fetchStudents();
+                
+            } catch (error) {
+                showToast(`❌ خطأ: ${error.message}`, 'error');
+            } finally {
+                hideLoading();
+                setButtonLoading(btn, false);
+                isProcessing = false;
+            }
+        }
 
-        document.getElementById('saveCompetitionBtn').addEventListener('click', async() => {
+        // ========== إضافة مسابقة ==========
+        async function addCompetition() {
+            if (isProcessing) { showToast('يوجد عملية قيد التنفيذ', 'warning'); return; }
+            
             const title = document.getElementById('compTitle').value.trim();
-            if(!title) return;
-            await addDoc(collection(db,"competitions"), { title, description:document.getElementById('compDesc').value, type:document.getElementById('compType').value, status:document.getElementById('compStatus').value, date:document.getElementById('compDate').value, endDate:document.getElementById('compEndDate').value, location:document.getElementById('compLocation').value, winners:[], createdAt:serverTimestamp() });
-            document.getElementById('compTitle').value=''; fetchCompetitions(); updateStats();
-        });
+            if (!title) { showToast('⚠️ الرجاء إدخال عنوان المسابقة', 'error'); return; }
+            
+            const btn = document.getElementById('saveCompetitionBtn');
+            try {
+                isProcessing = true;
+                setButtonLoading(btn, true);
+                showLoading('جاري إضافة المسابقة...');
+                
+                await addDoc(collection(db, "competitions"), {
+                    title, description: document.getElementById('compDesc').value,
+                    type: document.getElementById('compType').value, status: document.getElementById('compStatus').value,
+                    date: document.getElementById('compDate').value, endDate: document.getElementById('compEndDate').value,
+                    location: document.getElementById('compLocation').value, winners: [], createdAt: serverTimestamp()
+                });
+                
+                document.getElementById('compTitle').value = '';
+                document.getElementById('compDesc').value = '';
+                showToast('✅ تم إضافة المسابقة بنجاح', 'success');
+                await fetchCompetitions();
+                await updateStats();
+                
+            } catch (error) {
+                showToast(`❌ خطأ: ${error.message}`, 'error');
+            } finally {
+                hideLoading();
+                setButtonLoading(btn, false);
+                isProcessing = false;
+            }
+        }
 
-        document.getElementById('saveAchievementBtn').addEventListener('click', async() => {
+        // ========== إضافة إنجاز ==========
+        async function addAchievement() {
+            if (isProcessing) { showToast('يوجد عملية قيد التنفيذ', 'warning'); return; }
+            
             const title = document.getElementById('achTitle').value.trim();
-            if(!title) return;
-            await addDoc(collection(db,"achievements"), { title, description:document.getElementById('achDesc').value, tags:document.getElementById('achTags').value.split(',').map(t=>t.trim()), category:document.getElementById('achCategory').value, date:document.getElementById('achDate').value||new Date().toISOString().split('T')[0], likes:0, comments:[], createdAt:serverTimestamp() });
-            document.getElementById('achTitle').value=''; fetchAchievements(); updateStats();
-        });
+            if (!title) { showToast('⚠️ الرجاء إدخال عنوان الإنجاز', 'error'); return; }
+            
+            const btn = document.getElementById('saveAchievementBtn');
+            try {
+                isProcessing = true;
+                setButtonLoading(btn, true);
+                showLoading('جاري إضافة الإنجاز...');
+                
+                await addDoc(collection(db, "achievements"), {
+                    title, description: document.getElementById('achDesc').value,
+                    tags: document.getElementById('achTags').value.split(',').map(t => t.trim()).filter(t => t),
+                    category: document.getElementById('achCategory').value,
+                    date: document.getElementById('achDate').value || new Date().toISOString().split('T')[0],
+                    likes: 0, comments: [], createdAt: serverTimestamp()
+                });
+                
+                document.getElementById('achTitle').value = '';
+                document.getElementById('achDesc').value = '';
+                document.getElementById('achTags').value = '';
+                showToast('✅ تم إضافة الإنجاز بنجاح', 'success');
+                await fetchAchievements();
+                await updateStats();
+                
+            } catch (error) {
+                showToast(`❌ خطأ: ${error.message}`, 'error');
+            } finally {
+                hideLoading();
+                setButtonLoading(btn, false);
+                isProcessing = false;
+            }
+        }
 
-        document.getElementById('saveWinnerBtn').addEventListener('click', async() => {
+        // ========== تعديل وحذف ==========
+        window.viewStudent = (id) => { 
+            const s = studentsData.find(s => s.id === id); 
+            if(s){ localStorage.setItem('currentStudent',JSON.stringify(s)); window.open('student.html','_blank'); } 
+        };
+        
+        window.openEditStudent = (id) => { 
+            const s = studentsData.find(s => s.id === id); 
+            if(s){ 
+                document.getElementById('editStudentId').value = id; 
+                document.getElementById('editStudentName').value = s.name || ''; 
+                document.getElementById('editStudentLevel').value = s.overallLevel || 'مبتدئ'; 
+                document.getElementById('editStudentModal').style.display = 'flex'; 
+            } 
+        };
+        
+        async function saveEditStudent() {
+            if (isProcessing) { showToast('يوجد عملية قيد التنفيذ', 'warning'); return; }
+            
+            const id = document.getElementById('editStudentId').value;
+            const name = document.getElementById('editStudentName').value.trim();
+            if (!name) { showToast('⚠️ الرجاء إدخال الاسم', 'error'); return; }
+            
+            const btn = document.getElementById('saveEditStudentBtn');
+            try {
+                isProcessing = true;
+                setButtonLoading(btn, true);
+                showLoading('جاري حفظ التعديلات...');
+                
+                await updateDoc(doc(db, "students", id), {
+                    name: name,
+                    overallLevel: document.getElementById('editStudentLevel').value
+                });
+                
+                closeModal('editStudentModal');
+                showToast('✅ تم تحديث بيانات الطالب بنجاح', 'success');
+                await fetchStudents();
+                
+            } catch (error) {
+                showToast(`❌ خطأ: ${error.message}`, 'error');
+            } finally {
+                hideLoading();
+                setButtonLoading(btn, false);
+                isProcessing = false;
+            }
+        }
+        
+        window.deleteStudent = async (id) => {
+            if (isProcessing) { showToast('يوجد عملية قيد التنفيذ', 'warning'); return; }
+            if (!confirm('⚠️ هل أنت متأكد من حذف هذا الطالب؟')) return;
+            
+            try {
+                isProcessing = true;
+                showLoading('جاري حذف الطالب...');
+                await deleteDoc(doc(db, "students", id));
+                showToast('✅ تم حذف الطالب بنجاح', 'success');
+                await fetchStudents();
+            } catch (error) {
+                showToast(`❌ خطأ: ${error.message}`, 'error');
+            } finally {
+                hideLoading();
+                isProcessing = false;
+            }
+        };
+        
+        window.deleteCompetition = async (id) => {
+            if (isProcessing) { showToast('يوجد عملية قيد التنفيذ', 'warning'); return; }
+            if (!confirm('⚠️ هل أنت متأكد من حذف هذه المسابقة؟')) return;
+            
+            try {
+                isProcessing = true;
+                showLoading('جاري حذف المسابقة...');
+                await deleteDoc(doc(db, "competitions", id));
+                showToast('✅ تم حذف المسابقة بنجاح', 'success');
+                await fetchCompetitions();
+                await updateStats();
+            } catch (error) {
+                showToast(`❌ خطأ: ${error.message}`, 'error');
+            } finally {
+                hideLoading();
+                isProcessing = false;
+            }
+        };
+        
+        window.deleteAchievement = async (id) => {
+            if (isProcessing) { showToast('يوجد عملية قيد التنفيذ', 'warning'); return; }
+            if (!confirm('⚠️ هل أنت متأكد من حذف هذا الإنجاز؟')) return;
+            
+            try {
+                isProcessing = true;
+                showLoading('جاري حذف الإنجاز...');
+                await deleteDoc(doc(db, "achievements", id));
+                showToast('✅ تم حذف الإنجاز بنجاح', 'success');
+                await fetchAchievements();
+                await updateStats();
+            } catch (error) {
+                showToast(`❌ خطأ: ${error.message}`, 'error');
+            } finally {
+                hideLoading();
+                isProcessing = false;
+            }
+        };
+        
+        window.openAddWinner = (id) => {
+            document.getElementById('winnerCompetitionId').value = id;
+            document.getElementById('winnerName').value = '';
+            document.getElementById('winnerPosition').value = '';
+            document.getElementById('winnerPrize').value = '';
+            document.getElementById('addWinnerModal').style.display = 'flex';
+        };
+        
+        async function saveWinner() {
+            if (isProcessing) { showToast('يوجد عملية قيد التنفيذ', 'warning'); return; }
+            
             const id = document.getElementById('winnerCompetitionId').value;
-            const compRef = doc(db,"competitions",id);
-            const snap = await getDoc(compRef);
-            const winners = snap.data()?.winners||[];
-            winners.push({ studentName:document.getElementById('winnerName').value, position:document.getElementById('winnerPosition').value, prize:document.getElementById('winnerPrize').value, date:new Date().toISOString() });
-            await updateDoc(compRef, { winners });
-            closeModal('addWinnerModal'); fetchCompetitions();
-        });
+            const studentName = document.getElementById('winnerName').value.trim();
+            const position = document.getElementById('winnerPosition').value.trim();
+            
+            if (!studentName || !position) { showToast('⚠️ الرجاء إدخال اسم الطالب والمركز', 'error'); return; }
+            
+            const btn = document.getElementById('saveWinnerBtn');
+            try {
+                isProcessing = true;
+                setButtonLoading(btn, true);
+                showLoading('جاري إضافة الفائز...');
+                
+                const compRef = doc(db, "competitions", id);
+                const snap = await getDoc(compRef);
+                const winners = snap.data()?.winners || [];
+                winners.push({ 
+                    studentName: studentName, 
+                    position: position, 
+                    prize: document.getElementById('winnerPrize').value, 
+                    date: new Date().toISOString() 
+                });
+                await updateDoc(compRef, { winners });
+                
+                closeModal('addWinnerModal');
+                showToast('✅ تم إضافة الفائز بنجاح', 'success');
+                await fetchCompetitions();
+                
+            } catch (error) {
+                showToast(`❌ خطأ: ${error.message}`, 'error');
+            } finally {
+                hideLoading();
+                setButtonLoading(btn, false);
+                isProcessing = false;
+            }
+        }
 
+        // ========== جلب البيانات ==========
         async function fetchCompetitions() {
-            const snap = await getDocs(query(collection(db,"competitions"), orderBy("createdAt","desc")));
-            const container = document.getElementById('competitionsList');
-            if(snap.empty) { container.innerHTML='<div class="card">لا توجد مسابقات</div>'; return; }
-            container.innerHTML = '';
-            snap.docs.forEach(d => { const data=d.data(); container.innerHTML+=`<div class="card"><h4>🏆 ${data.title}</h4><p>${data.status} | ${data.date}</p><button class="btn btn-success btn-sm" onclick="openAddWinner('${d.id}')">🏅 إضافة فائز</button> <button class="btn btn-danger btn-sm" onclick="deleteCompetition('${d.id}')">🗑️ حذف</button></div>`; });
+            try {
+                const snap = await getDocs(query(collection(db, "competitions"), orderBy("createdAt", "desc")));
+                const container = document.getElementById('competitionsList');
+                if (snap.empty) { container.innerHTML = '<div class="card">📭 لا توجد مسابقات</div>'; return; }
+                container.innerHTML = '';
+                snap.docs.forEach(d => {
+                    const data = d.data();
+                    container.innerHTML += `<div class="card"><h4>🏆 ${data.title}</h4><p>📌 ${data.status} | 📅 ${data.date}</p><p>🏅 الفائزين: ${data.winners?.length || 0}</p><button class="btn btn-success btn-sm" onclick="openAddWinner('${d.id}')">🏅 إضافة فائز</button> <button class="btn btn-danger btn-sm" onclick="deleteCompetition('${d.id}')">🗑️ حذف</button></div>`;
+                });
+            } catch (error) { console.error(error); }
         }
 
         async function fetchAchievements() {
-            const snap = await getDocs(query(collection(db,"achievements"), orderBy("createdAt","desc")));
-            const container = document.getElementById('achievementsList');
-            if(snap.empty) { container.innerHTML='<div class="card">لا توجد إنجازات</div>'; return; }
-            container.innerHTML = '';
-            snap.docs.forEach(d => { const data=d.data(); container.innerHTML+=`<div class="card"><h4>🌟 ${data.title}</h4><p>${data.category} | 👍 ${data.likes||0}</p><button class="btn btn-danger btn-sm" onclick="deleteAchievement('${d.id}')">🗑️ حذف</button></div>`; });
+            try {
+                const snap = await getDocs(query(collection(db, "achievements"), orderBy("createdAt", "desc")));
+                const container = document.getElementById('achievementsList');
+                if (snap.empty) { container.innerHTML = '<div class="card">📭 لا توجد إنجازات</div>'; return; }
+                container.innerHTML = '';
+                snap.docs.forEach(d => {
+                    const data = d.data();
+                    container.innerHTML += `<div class="card"><h4>🌟 ${data.title}</h4><p>📂 ${data.category} | 👍 ${data.likes || 0}</p><p>💬 ${data.comments?.length || 0} تعليق</p><button class="btn btn-danger btn-sm" onclick="deleteAchievement('${d.id}')">🗑️ حذف</button></div>`;
+                });
+            } catch (error) { console.error(error); }
         }
 
-        // البحث والفلترة
+        // ========== إغلاق المودال ==========
+        window.closeModal = (id) => document.getElementById(id).style.display = 'none';
+
+        // ========== البحث والفلترة ==========
         document.getElementById('searchInput').addEventListener('input', (e) => { currentSearchTerm = e.target.value; renderStudents(); });
-        document.querySelectorAll('.filter-btn').forEach(btn => { btn.addEventListener('click', () => { document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); currentFilter = btn.dataset.filter; renderStudents(); }); });
+        document.querySelectorAll('.filter-btn').forEach(btn => { btn.addEventListener('click', () => { document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); currentFilter = btn.dataset.filter; renderStudents(); }); });
 
-        // التبويبات
-        document.querySelectorAll('.tab').forEach(tab => { tab.addEventListener('click', () => { document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active')); tab.classList.add('active'); document.getElementById(tab.dataset.tab).classList.add('active'); }); });
+        // ========== التبويبات ==========
+        document.querySelectorAll('.tab').forEach(tab => { tab.addEventListener('click', () => { document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active')); tab.classList.add('active'); document.getElementById(tab.dataset.tab).classList.add('active'); }); });
 
-        // زر النسخ الاحتياطي
+        // ========== ربط الأحداث ==========
         document.getElementById('backupBtn').addEventListener('click', exportToTelegram);
+        document.getElementById('saveStudentBtn').addEventListener('click', addStudent);
+        document.getElementById('saveTestBtn').addEventListener('click', addTest);
+        document.getElementById('savePagesBtn').addEventListener('click', addMonthlyPages);
+        document.getElementById('saveCompetitionBtn').addEventListener('click', addCompetition);
+        document.getElementById('saveAchievementBtn').addEventListener('click', addAchievement);
+        document.getElementById('saveEditStudentBtn').addEventListener('click', saveEditStudent);
+        document.getElementById('saveWinnerBtn').addEventListener('click', saveWinner);
 
-        // بدء الجدولة التلقائية
+        // ========== بدء التشغيل ==========
         scheduleWeeklyBackup();
-
-        // تحميل البيانات
         fetchStudents();
         fetchCompetitions();
         fetchAchievements();
     </script>
 </body>
-                                                                                         </html>
+                    </html>
