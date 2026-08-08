@@ -644,6 +644,18 @@ input:checked + .slider::before { transform: translateX(-30px); }
     color: var(--primary-dark);
 }
 
+.mem-grade {
+    display: inline-block;
+    padding: 2px 12px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.8rem;
+}
+.mem-grade.grade-excellent { background: #c8e6c9; color: #2e7d32; }
+.mem-grade.grade-very-good { background: #b3e5fc; color: #0d47a1; }
+.mem-grade.grade-good { background: #fff9c4; color: #f57f17; }
+.mem-grade.grade-retry { background: #ffcdd2; color: #c62828; }
+
 .memorization-item .item-info .details {
     font-size: 0.85rem;
     color: var(--text-light);
