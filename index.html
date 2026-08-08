@@ -208,8 +208,14 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">اسم السورة</label>
-                    <input type="text" id="memSurahName" class="form-input" placeholder="مثال: البقرة">
+                    <label class="form-label">التقدير</label>
+                    <select id="memGrade" class="form-select">
+                        <option value="">-- اختر التقدير --</option>
+                        <option value="ممتاز">ممتاز</option>
+                        <option value="جيد جداً">جيد جداً</option>
+                        <option value="جيد">جيد</option>
+                        <option value="إعادة">إعادة</option>
+                    </select>
                 </div>
 
                 <div class="form-group">
@@ -412,17 +418,35 @@
         <!-- ============== إدارة اللعبة ============== -->
         <div class="tab-content" id="game-management">
             <div class="card">
-                <h3>🎮 إحصائيات اللعبة</h3>
-                <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr);">
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:15px;">
+                    <h3 style="margin:0;">🎮 إحصائيات اللعبة</h3>
+                    <button class="btn btn-danger" onclick="resetAllStudentsGame()">🔁 إعادة جميع الطلاب للبداية</button>
+                </div>
+                <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr);">
                     <div class="stat-card"><i class="fas fa-users"></i><h3 id="totalGamePlayers">0</h3><p>إجمالي الطلاب</p></div>
                     <div class="stat-card"><i class="fas fa-flag-checkered"></i><h3 id="totalCompleted">0</h3><p>وصلوا للفوز</p></div>
                     <div class="stat-card"><i class="fas fa-star"></i><h3 id="avgGameScore">0</h3><p>متوسط النقاط</p></div>
+                    <div class="stat-card"><i class="fas fa-crown"></i><h3 id="topGameScore">0</h3><p>أعلى نقاط: <span id="topGameScoreName">—</span></p></div>
+                    <div class="stat-card"><i class="fas fa-check-circle"></i><h3 id="totalAnsweredQuestions">0</h3><p>أسئلة مجاب عنها</p></div>
                     <div class="stat-card"><i class="fas fa-question-circle"></i><h3 id="totalGameQuestions">0</h3><p>الأسئلة النشطة</p></div>
                 </div>
             </div>
             <div class="card" style="margin-top: 20px;">
                 <h3>📊 توزيع الطلاب على الجزر</h3>
                 <div id="islandDistribution" class="stats-grid" style="grid-template-columns: repeat(4, 1fr);"></div>
+            </div>
+            <div class="card" style="margin-top: 20px;">
+                <h3>🏆 المتصدرون (أفضل 5)</h3>
+                <div id="gameLeaderboard"></div>
+            </div>
+            <div class="card" style="margin-top: 20px;">
+                <h3>📋 تفاصيل تقدم الطلاب في اللعبة</h3>
+                <div class="data-table-container">
+                    <table class="data-table">
+                        <thead><tr><th>#</th><th>الطالب</th><th>الجزيرة الحالية</th><th>النقاط</th><th>أسئلة مجاب عنها</th><th>نسبة التقدم</th><th>إجراء</th></tr></thead>
+                        <tbody id="gameStudentsTable"><tr><td colspan="7" style="text-align:center;padding:40px;">جاري التحميل...</td></tr></tbody>
+                    </table>
+                </div>
             </div>
             <div class="card" style="margin-top: 20px;">
                 <h3>📝 إدارة الأسئلة الأسبوعية</h3>
@@ -491,6 +515,46 @@
         </div>
     </div>
 
+    <!-- مودال إدارة بيانات اللعبة -->
+    <div class="modal" id="editGameModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🎮 إدارة بيانات اللعبة</h3>
+                <button class="close-btn" onclick="closeModal('editGameModal')">&times;</button>
+            </div>
+            <input type="hidden" id="editGameStudentId">
+            <div class="form-group">
+                <label class="form-label">الطالب</label>
+                <p id="editGameStudentName" style="font-weight: 700; color: var(--primary-dark);"></p>
+            </div>
+            <div class="form-group">
+                <label class="form-label">الجزيرة الحالية</label>
+                <select id="editGameIslandSelect" class="form-select">
+                    <option value="0">الانطلاق</option>
+                    <option value="1">الإيمان</option>
+                    <option value="2">العلم</option>
+                    <option value="3">التقوى</option>
+                    <option value="4">الأخلاق</option>
+                    <option value="5">الإتقان</option>
+                    <option value="6">النور</option>
+                    <option value="7">الفوز 🏆</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">النقاط</label>
+                <input type="number" id="editGameScoreInput" class="form-input" min="0" placeholder="0">
+            </div>
+            <div class="form-group">
+                <label class="form-label">الأسئلة المجاب عنها: <span id="editGameAnsweredCount" style="font-weight: 700; color: var(--primary-dark);"></span></label>
+                <label style="display:flex;align-items:center;gap:8px;margin-top:6px;cursor:pointer;font-size:0.9rem;">
+                    <input type="checkbox" id="clearAnsweredCheck">
+                    <span>🗑 تصفير الأسئلة المجاب عنها</span>
+                </label>
+            </div>
+            <button id="saveGameBtn" class="btn btn-primary" style="width: 100%;">💾 حفظ</button>
+        </div>
+    </div>
+
     <!-- مودال تقييم حلقة التسميع -->
     <div class="modal" id="evaluateSessionModal">
         <div class="modal-content" style="max-width: 700px;">
@@ -521,7 +585,7 @@
     <script type="module">
         import {
             db, collection, getDocs, addDoc, updateDoc, deleteDoc, setDoc,
-            doc, query, orderBy, where, serverTimestamp, getDoc, limit,
+            doc, serverTimestamp, getDoc,
             SITE_SETTINGS_REF, onSnapshot
         } from './firebase-config.js';
 
@@ -530,6 +594,13 @@
         let allSessions = [];
         let isProcessing = false;
         let unsubscribeSettings = null;
+
+        function timeOf(value) {
+            if (!value) return 0;
+            if (typeof value.toMillis === 'function') return value.toMillis();
+            const t = new Date(value).getTime();
+            return isNaN(t) ? 0 : t;
+        }
 
         // متغيرات التسميع
         let currentMemorizationStudent = null;
@@ -644,7 +715,6 @@
             }
             
             recalculateScore();
-            showToast(`✅ تم تغيير قيمة "${getTypeName(type)}" إلى ${newValue}`, 'success');
         };
 
         function getTypeName(type) {
@@ -917,8 +987,9 @@
         // ============== حلقات التسميع ==============
         async function fetchSessions() {
             try {
-                const snap = await getDocs(query(collection(db, "recitation_sessions"), orderBy("createdAt", "desc")));
+                const snap = await getDocs(collection(db, "recitation_sessions"));
                 allSessions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                allSessions.sort((a, b) => (timeOf(b.createdAt) || 0) - (timeOf(a.createdAt) || 0));
                 document.getElementById('totalSessions').textContent = allSessions.length;
                 renderSessions();
             } catch (error) {
@@ -1021,7 +1092,7 @@
             const container = document.getElementById('evaluateStudentsContainer');
             container.innerHTML = '';
 
-            session.students.forEach(studentId => {
+            (session.students || []).forEach(studentId => {
                 const student = allStudents.find(s => s.id === studentId);
                 const studentName = student ? student.name : 'طالب غير معروف';
                 const existingEval = (session.evaluations || []).find(e => e.studentId === studentId);
@@ -1169,7 +1240,8 @@
 
         function loadMemorizationHistory(student) {
             const container = document.getElementById('memorizationHistory');
-            const memorizations = (student.memorizations || []).sort((a, b) => {
+            const original = student.memorizations || [];
+            const memorizations = [...original].sort((a, b) => {
                 return new Date(b.date) - new Date(a.date);
             });
             
@@ -1179,6 +1251,7 @@
             }
             
             container.innerHTML = memorizations.map((m, index) => {
+                const originalIndex = original.findIndex(o => o === m);
                 const evals = m.evaluations || {};
                 const evalsTags = [];
                 if (evals.errors > 0) evalsTags.push(`<span class="ev-tag error">❌ ${evals.errors}</span>`);
@@ -1187,16 +1260,23 @@
                 if (evals.hesitation > 0) evalsTags.push(`<span class="ev-tag hesitation">🔄 ${evals.hesitation}</span>`);
                 if (evals.fluency > 0) evalsTags.push(`<span class="ev-tag fluency">💪 ${evals.fluency}</span>`);
                 
+                let memGradeClass = '';
+                const memGrade = m.grade || '';
+                if (memGrade === 'ممتاز') memGradeClass = 'grade-excellent';
+                else if (memGrade === 'جيد جداً') memGradeClass = 'grade-very-good';
+                else if (memGrade === 'جيد') memGradeClass = 'grade-good';
+                else if (memGrade === 'إعادة') memGradeClass = 'grade-retry';
+                
                 return `
                     <div class="memorization-item">
                         <div class="item-info">
-                            <div class="surah">📖 ${escapeHtml(m.surah || 'سورة')} - صفحة ${m.pageNumber || ''}</div>
+                            <div class="surah">📖 التقدير: <span class="mem-grade ${memGradeClass}">${escapeHtml(memGrade || 'غير محدد')}</span> - صفحة ${m.pageNumber || ''}</div>
                             <div class="details">${m.date || ''}</div>
                             <div class="item-evals">${evalsTags.join('')}</div>
                             ${m.notes ? `<div style="font-size: 0.8rem; color: #666; margin-top: 4px;">📝 ${escapeHtml(m.notes)}</div>` : ''}
                         </div>
                         <div class="item-score">${m.score || 0}%</div>
-                        <button class="btn btn-sm btn-danger" onclick="deleteMemorizationSession('${student.id}', ${index})" style="margin-right: 10px;">
+                        <button class="btn btn-sm btn-danger" onclick="deleteMemorizationSession('${student.id}', ${originalIndex})" style="margin-right: 10px;">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
@@ -1261,10 +1341,9 @@
                 }
                 
                 const type = this.dataset.type;
-                const points = parseInt(this.dataset.points);
                 
                 memorizationEvals[type] = (memorizationEvals[type] || 0) + 1;
-                totalPoints += points;
+                recalculateScore();
                 
                 updateEvaluationDisplay();
                 
@@ -1314,7 +1393,7 @@
             }
             
             const pageNumber = parseInt(document.getElementById('memPageNumber').value);
-            const surah = document.getElementById('memSurahName').value.trim();
+            const grade = document.getElementById('memGrade').value;
             const notes = document.getElementById('memNotes')?.value?.trim() || '';
             
             if (!pageNumber || pageNumber < 1 || pageNumber > 604) {
@@ -1322,8 +1401,8 @@
                 return;
             }
             
-            if (!surah) {
-                showToast('⚠️ الرجاء إدخال اسم السورة', 'error');
+            if (!grade) {
+                showToast('⚠️ الرجاء اختيار التقدير', 'error');
                 return;
             }
             
@@ -1331,7 +1410,7 @@
             
             const memorizationData = {
                 pageNumber: pageNumber,
-                surah: surah,
+                grade: grade,
                 date: new Date().toISOString().split('T')[0],
                 score: finalScore,
                 evaluations: { ...memorizationEvals },
@@ -1364,7 +1443,7 @@
                 
                 resetEvaluation();
                 document.getElementById('memPageNumber').value = '';
-                document.getElementById('memSurahName').value = '';
+                document.getElementById('memGrade').value = '';
                 if (document.getElementById('memNotes')) document.getElementById('memNotes').value = '';
                 
                 await fetchAllStudents();
@@ -1389,7 +1468,7 @@
             if (confirm('هل تريد إلغاء التقييم الحالي؟')) {
                 resetEvaluation();
                 document.getElementById('memPageNumber').value = '';
-                document.getElementById('memSurahName').value = '';
+                document.getElementById('memGrade').value = '';
                 if (document.getElementById('memNotes')) document.getElementById('memNotes').value = '';
                 showToast('🔄 تم إلغاء التقييم', 'warning');
             }
@@ -1418,7 +1497,7 @@
                     memorizations: [],
                     totalMemorizationScore: 0,
                     avgMemorizationScore: 0,
-                    current_island: 0, game_score: 0, last_game_answer: null,
+                    current_island: 0, game_score: 0,
                     createdAt: serverTimestamp()
                 });
                 showToast(`✅ تم إضافة الطالب. الكود: ${code}`, 'success');
@@ -1436,7 +1515,9 @@
             const tname = document.getElementById('testName').value.trim();
             const result = parseInt(document.getElementById('testResult').value);
             const date = document.getElementById('testDate').value;
+            if (!sid) { showToast('⚠️ اختر طالباً', 'error'); return; }
             if (!tname || isNaN(result)) { showToast('⚠️ أكمل البيانات', 'error'); return; }
+            if (result < 0 || result > 100) { showToast('⚠️ النتيجة يجب أن تكون بين 0 و 100', 'error'); return; }
             try {
                 const sref = doc(db, "students", sid);
                 const snap = await getDoc(sref);
@@ -1457,6 +1538,7 @@
             const year = parseInt(document.getElementById('pagesYear').value);
             const pages = parseInt(document.getElementById('pagesCount').value) || 0;
             const goal = parseInt(document.getElementById('pagesGoal').value) || 20;
+            if (!sid) { showToast('⚠️ اختر طالباً', 'error'); return; }
             try {
                 const sref = doc(db, "students", sid);
                 const snap = await getDoc(sref);
@@ -1472,8 +1554,9 @@
         async function loadCompetitions() {
             const container = document.getElementById('competitionsList');
             try {
-                const snap = await getDocs(query(collection(db, "competitions"), orderBy("createdAt", "desc")));
+                const snap = await getDocs(collection(db, "competitions"));
                 const comps = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                comps.sort((a, b) => (timeOf(b.createdAt) || 0) - (timeOf(a.createdAt) || 0));
                 document.getElementById('totalCompetitions').textContent = comps.length;
                 if (comps.length === 0) {
                     container.innerHTML = '<div class="card" style="text-align: center;">لا توجد مسابقات بعد</div>';
@@ -1553,8 +1636,9 @@
         async function loadAchievements() {
             const container = document.getElementById('achievementsList');
             try {
-                const snap = await getDocs(query(collection(db, "achievements"), orderBy("createdAt", "desc")));
+                const snap = await getDocs(collection(db, "achievements"));
                 const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                items.sort((a, b) => (timeOf(b.createdAt) || 0) - (timeOf(a.createdAt) || 0));
                 document.getElementById('totalAchievements').textContent = items.length;
                 if (items.length === 0) {
                     container.innerHTML = '<div class="card" style="text-align: center;">لا توجد إنجازات بعد</div>';
@@ -1623,8 +1707,9 @@
         // ============== إدارة اللعبة والأسئلة ==============
         async function fetchQuestions() {
             try {
-                const snap = await getDocs(query(collection(db, "weekly_questions"), orderBy("createdAt", "desc")));
+                const snap = await getDocs(collection(db, "weekly_questions"));
                 allQuestions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                allQuestions.sort((a, b) => (timeOf(b.createdAt) || 0) - (timeOf(a.createdAt) || 0));
                 document.getElementById('totalQuestions').textContent = allQuestions.length;
                 renderQuestions();
                 return allQuestions;
@@ -1642,7 +1727,7 @@
             }
             tbody.innerHTML = allQuestions.map((q) => {
                 const optionsText = (q.options || []).map((opt, idx) => `${['أ','ب','ج','د'][idx]}: ${escapeHtml(opt)}`).join(' | ');
-                const correctText = `${['أ','ب','ج','د'][q.correctIndex]}`;
+                const correctText = `${['أ','ب','ج','د'][q.correctIndex] || '—'}`;
                 const weekText = q.weekStart && q.weekEnd ? `${q.weekStart} → ${q.weekEnd}` : 'غير محدد';
                 return `<tr>
                     <td><strong>${escapeHtml(q.question)}</strong></td>
@@ -1732,16 +1817,26 @@
             try {
                 const studentsSnap = await getDocs(collection(db, "students"));
                 const students = studentsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                const islandNames = ['الانطلاق', 'الإيمان', 'العلم', 'التقوى', 'الأخلاق', 'الإتقان', 'النور', 'الفوز 🏆'];
+
                 document.getElementById('totalGamePlayers').textContent = students.length;
                 const completed = students.filter(s => (s.current_island || 0) >= 7).length;
                 document.getElementById('totalCompleted').textContent = completed;
-                let totalScore = 0;
-                students.forEach(s => totalScore += (s.game_score || 0));
+                let totalScore = 0, totalAnswered = 0;
+                let topStudent = null;
+                students.forEach(s => {
+                    const sc = s.game_score || 0;
+                    totalScore += sc;
+                    totalAnswered += (s.answeredQuestions || []).length;
+                    if (!topStudent || sc > (topStudent.game_score || 0)) topStudent = s;
+                });
                 document.getElementById('avgGameScore').textContent = students.length > 0 ? Math.round(totalScore / students.length) : 0;
+                document.getElementById('totalAnsweredQuestions').textContent = totalAnswered;
+                document.getElementById('topGameScore').textContent = topStudent ? (topStudent.game_score || 0) : 0;
+                document.getElementById('topGameScoreName').textContent = topStudent ? escapeHtml(topStudent.name || '') : '—';
 
                 const distribution = Array(8).fill(0);
                 students.forEach(s => { const island = Math.min(s.current_island || 0, 7); distribution[island]++; });
-                const islandNames = ['الانطلاق', 'الإيمان', 'العلم', 'التقوى', 'الأخلاق', 'الإتقان', 'النور', 'الفوز 🏆'];
                 const distContainer = document.getElementById('islandDistribution');
                 distContainer.innerHTML = distribution.map((count, i) => `
                     <div class="stat-card" style="border-top-color: ${i === 7 ? '#ffd700' : '#2c786c'};">
@@ -1750,9 +1845,64 @@
                     </div>
                 `).join('');
 
+                const leaderboard = [...students].sort((a, b) => (b.game_score || 0) - (a.game_score || 0)).slice(0, 5);
+                const medals = ['🥇', '🥈', '🥉', '4', '5'];
+                const lbContainer = document.getElementById('gameLeaderboard');
+                if (leaderboard.length === 0) {
+                    lbContainer.innerHTML = '<p style="color:#666;text-align:center;padding:15px;">لا يوجد طلاب بعد</p>';
+                } else {
+                    lbContainer.innerHTML = leaderboard.map((s, i) => `
+                        <div style="display:flex;align-items:center;gap:12px;padding:10px 15px;background:#f8f9fa;border-radius:10px;margin-bottom:8px;flex-wrap:wrap;">
+                            <div style="font-size:1.3rem;width:34px;text-align:center;flex-shrink:0;">${medals[i]}</div>
+                            <div style="flex:1;min-width:120px;font-weight:700;">${escapeHtml(s.name || '')}</div>
+                            <div>🏝️ ${islandNames[Math.min(s.current_island || 0, 7)]}</div>
+                            <div style="font-weight:700;color:var(--primary-dark);">${s.game_score || 0} نقطة</div>
+                        </div>
+                    `).join('');
+                }
+
+                const sorted = [...students].sort((a, b) => {
+                    const islandDiff = (b.current_island || 0) - (a.current_island || 0);
+                    if (islandDiff !== 0) return islandDiff;
+                    return (b.game_score || 0) - (a.game_score || 0);
+                });
+                const tableBody = document.getElementById('gameStudentsTable');
+                if (sorted.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;">لا يوجد طلاب</td></tr>';
+                } else {
+                    tableBody.innerHTML = sorted.map((s, i) => {
+                        const islandIndex = Math.min(s.current_island || 0, 7);
+                        const answered = (s.answeredQuestions || []).length;
+                        const progress = Math.round((islandIndex / 7) * 100);
+                        return `<tr>
+                            <td>${i + 1}</td>
+                            <td><strong>${escapeHtml(s.name || '')}</strong></td>
+                            <td>🏝️ ${islandNames[islandIndex]}</td>
+                            <td>${s.game_score || 0}</td>
+                            <td>${answered}</td>
+                            <td>
+                                <div style="display:flex;align-items:center;gap:8px;">
+                                    <div style="flex:1;background:#e9ecef;border-radius:10px;height:8px;overflow:hidden;">
+                                        <div style="height:100%;width:${progress}%;background:${progress === 100 ? '#ffd700' : '#2c786c'};border-radius:10px;"></div>
+                                    </div>
+                                    <span style="font-size:0.8rem;color:#666;min-width:40px;">${progress}%</span>
+                                </div>
+                            </td>
+                            <td style="white-space:nowrap;">
+                                <button class="btn btn-sm btn-primary" onclick="openEditGame('${s.id}')">🎮 إدارة</button>
+                                <button class="btn btn-sm btn-warning" onclick="openEditIsland('${s.id}')">تغيير الجزيرة</button>
+                            </td>
+                        </tr>`;
+                    }).join('');
+                }
+
                 const today = new Date().toISOString().split('T')[0];
-                const qSnap = await getDocs(query(collection(db, "weekly_questions"), where("weekStart", "<=", today), where("weekEnd", ">=", today)));
-                document.getElementById('totalGameQuestions').textContent = qSnap.size;
+                const qSnap = await getDocs(collection(db, "weekly_questions"));
+                const activeQuestions = qSnap.docs.filter(d => {
+                    const data = d.data();
+                    return data.weekStart && data.weekEnd && data.weekStart <= today && data.weekEnd >= today;
+                });
+                document.getElementById('totalGameQuestions').textContent = activeQuestions.length;
             } catch (error) {
                 console.error('❌ خطأ في تحميل إدارة اللعبة:', error);
             }
@@ -1774,12 +1924,76 @@
             try {
                 isProcessing = true;
                 showLoading('جاري الحفظ...');
-                await updateDoc(doc(db, "students", id), { current_island: island });
+                await updateDoc(doc(db, "students", id), { current_island: island, correct_answers_count: 0 });
                 showToast('✅ تم تعديل الجزيرة', 'success');
                 closeModal('editIslandModal');
                 await fetchAllStudents();
             } catch (e) { showToast(`❌ خطأ: ${e.message}`, 'error'); }
             finally { hideLoading(); isProcessing = false; }
+        });
+
+        // ============== إدارة بيانات اللعبة (نقاط / أسئلة) ==============
+        window.openEditGame = (id) => {
+            const s = allStudents.find(x => x.id === id);
+            if (!s) return;
+            document.getElementById('editGameStudentId').value = id;
+            document.getElementById('editGameStudentName').textContent = s.name || 'طالب';
+            document.getElementById('editGameIslandSelect').value = Math.min(s.current_island || 0, 7);
+            document.getElementById('editGameScoreInput').value = s.game_score || 0;
+            document.getElementById('editGameAnsweredCount').textContent = (s.answeredQuestions || []).length;
+            document.getElementById('clearAnsweredCheck').checked = false;
+            document.getElementById('editGameModal').style.display = 'flex';
+        };
+
+        document.getElementById('saveGameBtn').addEventListener('click', async () => {
+            const id = document.getElementById('editGameStudentId').value;
+            const island = parseInt(document.getElementById('editGameIslandSelect').value);
+            const score = parseInt(document.getElementById('editGameScoreInput').value);
+            const clearAnswered = document.getElementById('clearAnsweredCheck').checked;
+            if (isNaN(score) || score < 0) { showToast('⚠️ أدخل قيمة نقاط صحيحة (0 فأكثر)', 'error'); return; }
+            const updates = {
+                current_island: island,
+                game_score: score,
+                correct_answers_count: 0
+            };
+            if (clearAnswered) updates.answeredQuestions = [];
+            try {
+                isProcessing = true;
+                showLoading('جاري الحفظ...');
+                await updateDoc(doc(db, "students", id), updates);
+                showToast('✅ تم حفظ بيانات اللعبة', 'success');
+                closeModal('editGameModal');
+                await fetchAllStudents();
+            } catch (e) { showToast(`❌ خطأ: ${e.message}`, 'error'); }
+            finally { hideLoading(); isProcessing = false; }
+        });
+
+        // ============== إعادة جميع الطلاب للبداية ==============
+        window.resetAllStudentsGame = async () => {
+            try {
+                const snap = await getDocs(collection(db, "students"));
+                const students = snap.docs.map(d => d.id);
+                if (students.length === 0) { showToast('⚠️ لا يوجد طلاب', 'error'); return; }
+                if (!confirm(`⚠️ سيتم إرجاع جميع الطلاب (${students.length}) للجزيرة الأولى وتصفير النقاط والأسئلة المجاب عنها بالكامل. هل أنت متأكد؟`)) return;
+                isProcessing = true;
+                showLoading('جاري تصفير بيانات اللعبة...');
+                await Promise.all(students.map(id => updateDoc(doc(db, "students", id), {
+                    current_island: 0,
+                    game_score: 0,
+                    answeredQuestions: [],
+                    correct_answers_count: 0
+                })));
+                showToast(`✅ تم تصفير بيانات اللعبة لـ ${students.length} طالب`, 'success');
+                await fetchAllStudents();
+            } catch (e) { showToast(`❌ خطأ: ${e.message}`, 'error'); }
+            finally { hideLoading(); isProcessing = false; }
+        };
+
+        // ============== إغلاق المودالات بالنقر خارجها ==============
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) closeModal(modal.id);
+            });
         });
 
         // ============== التبويبات ==============
