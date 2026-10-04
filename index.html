@@ -124,6 +124,11 @@
                 <div class="form-group"><label class="form-label">التاريخ</label><input type="date" id="testDate" class="form-input"></div>
                 <button id="saveTestBtn" class="btn btn-primary">💾 حفظ الاختبار</button>
             </div>
+
+            <div class="card" style="margin-top: 20px;">
+                <h3 style="margin-bottom: 14px;"><i class="fas fa-list"></i> إدارة اختبارات الطالب</h3>
+                <div id="testsManageContainer"><p style="color:#666;">اختر طالباً لعرض اختباراته...</p></div>
+            </div>
         </div>
 
         <!-- ============== الصفحات الشهرية ============== -->
@@ -144,6 +149,11 @@
                 <div class="form-group"><label class="form-label">الهدف الشهري</label><input type="number" id="pagesGoal" class="form-input" value="20"></div>
                 <button id="savePagesBtn" class="btn btn-primary">💾 حفظ البيانات</button>
             </div>
+
+            <div class="card" style="margin-top: 20px;">
+                <h3 style="margin-bottom: 14px;"><i class="fas fa-list"></i> إدارة المحصلات الشهرية</h3>
+                <div id="pagesManageContainer"><p style="color:#666;">اختر طالباً لعرض محصلاته...</p></div>
+            </div>
         </div>
 
         <!-- ============== حلقات التسميع ============== -->
@@ -160,8 +170,11 @@
                         <input type="date" id="sessionDate" class="form-input">
                     </div>
                     <div class="form-group">
-                        <label class="form-label">الآيات المراجعة</label>
-                        <input type="text" id="sessionVerses" class="form-input" placeholder="مثال: 1-7">
+                        <label class="form-label">الأجزاء المراجعة</label>
+                        <select id="sessionJuz" class="form-select" multiple size="5"></select>
+                        <small style="color: var(--text-light); font-size: 0.75rem; display: block; margin-top: 4px;">
+                            <i class="fas fa-info-circle"></i> يمكنك اختيار أكثر من جزء (Ctrl / Cmd)
+                        </small>
                     </div>
                 </div>
                 <div class="form-group">
@@ -203,8 +216,11 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">رقم الصفحة</label>
-                    <input type="number" id="memPageNumber" class="form-input" placeholder="أدخل رقم الصفحة" min="1" max="604">
+                    <label class="form-label">الصفحات</label>
+                    <input type="text" id="memPageNumber" class="form-input" placeholder="مثال: 5-12 أو 5، 6، 8">
+                    <small style="color: var(--text-light); font-size: 0.75rem; display: block; margin-top: 4px;">
+                        <i class="fas fa-info-circle"></i> صفحة واحدة، أو نطاق (5-12)، أو عدة صفحات مفصولة بفواصل
+                    </small>
                 </div>
 
                 <div class="form-group">
@@ -486,6 +502,97 @@
         </div>
     </div>
 
+    <!-- مودال تعديل جلسة التسميع -->
+    <div class="modal" id="editMemorizationModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>✏️ تعديل جلسة التسميع</h3>
+                <button class="close-btn" onclick="closeModal('editMemorizationModal')">&times;</button>
+            </div>
+            <input type="hidden" id="editMemStudentId">
+            <input type="hidden" id="editMemIndex">
+            <div class="form-group">
+                <label class="form-label">الطالب</label>
+                <p id="editMemStudentName" style="font-weight: 700; color: var(--primary-dark);"></p>
+            </div>
+            <div class="form-group">
+                <label class="form-label">الصفحات (مثال: 5-12 أو 5، 6، 8)</label>
+                <input type="text" id="editMemPages" class="form-input">
+            </div>
+            <div class="form-group">
+                <label class="form-label">التقدير</label>
+                <select id="editMemGrade" class="form-select">
+                    <option value="">-- اختر التقدير --</option>
+                    <option value="ممتاز">ممتاز</option>
+                    <option value="جيد جداً">جيد جداً</option>
+                    <option value="جيد">جيد</option>
+                    <option value="إعادة">إعادة</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">الدرجة (%)</label>
+                <input type="number" id="editMemScore" class="form-input" min="0" max="100">
+            </div>
+            <div class="form-group">
+                <label class="form-label">ملاحظات</label>
+                <textarea id="editMemNotes" class="form-textarea" rows="2"></textarea>
+            </div>
+            <button id="saveMemorizationEditBtn" class="btn btn-primary" style="width: 100%;">💾 حفظ التعديل</button>
+        </div>
+    </div>
+
+    <!-- مودال تعديل الاختبار -->
+    <div class="modal" id="editTestModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>✏️ تعديل الاختبار</h3>
+                <button class="close-btn" onclick="closeModal('editTestModal')">&times;</button>
+            </div>
+            <input type="hidden" id="editTestStudentId">
+            <input type="hidden" id="editTestType">
+            <input type="hidden" id="editTestIndex">
+            <div class="form-group">
+                <label class="form-label">اسم الاختبار</label>
+                <input type="text" id="editTestName" class="form-input">
+            </div>
+            <div class="form-group">
+                <label class="form-label">النتيجة (من 100)</label>
+                <input type="number" id="editTestResult" class="form-input" min="0" max="100">
+            </div>
+            <div class="form-group">
+                <label class="form-label">التاريخ</label>
+                <input type="date" id="editTestDate" class="form-input">
+            </div>
+            <button id="saveTestEditBtn" class="btn btn-primary" style="width: 100%;">💾 حفظ التعديل</button>
+        </div>
+    </div>
+
+    <!-- مودال تعديل المحصلة الشهرية -->
+    <div class="modal" id="editPagesModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>✏️ تعديل المحصلة الشهرية</h3>
+                <button class="close-btn" onclick="closeModal('editPagesModal')">&times;</button>
+            </div>
+            <input type="hidden" id="editPagesStudentId">
+            <input type="hidden" id="editPagesIndex">
+            <div class="form-group">
+                <label class="form-label">الطالب</label>
+                <p id="editPagesStudentName" style="font-weight: 700; color: var(--primary-dark);"></p>
+            </div>
+            <div class="form-group">
+                <label class="form-label">الشهر</label>
+                <select id="editPagesMonth" class="form-select">
+                    <option value="1">يناير</option><option value="2">فبراير</option><option value="3">مارس</option><option value="4">أبريل</option><option value="5">مايو</option><option value="6">يونيو</option><option value="7">يوليو</option><option value="8">أغسطس</option><option value="9">سبتمبر</option><option value="10">أكتوبر</option><option value="11">نوفمبر</option><option value="12">ديسمبر</option>
+                </select>
+            </div>
+            <div class="form-group"><label class="form-label">السنة</label><input type="number" id="editPagesYear" class="form-input"></div>
+            <div class="form-group"><label class="form-label">عدد الصفحات</label><input type="number" id="editPagesCount" class="form-input" min="0"></div>
+            <div class="form-group"><label class="form-label">الهدف الشهري</label><input type="number" id="editPagesGoal" class="form-input" min="0"></div>
+            <button id="savePagesEditBtn" class="btn btn-primary" style="width: 100%;">💾 حفظ التعديل</button>
+        </div>
+    </div>
+
     <!-- مودال تعديل الجزيرة -->
     <div class="modal" id="editIslandModal">
         <div class="modal-content">
@@ -600,6 +707,54 @@
             if (typeof value.toMillis === 'function') return value.toMillis();
             const t = new Date(value).getTime();
             return isNaN(t) ? 0 : t;
+        }
+
+        // ============== أدوات مساعدة ==============
+        // ترتيب الطلاب أبجدياً حسب الاسم (دعم عربي)
+        function sortStudentsAlpha(list) {
+            return [...list].sort((a, b) =>
+                String(a.name || '').localeCompare(String(b.name || ''), 'ar', { numeric: true, sensitivity: 'base' })
+            );
+        }
+
+        // تنسيق قائمة أرقام الصفحات: متصلة => "5-12" وإلا "5، 6، 8"
+        function formatPages(pages) {
+            if (!Array.isArray(pages) || pages.length === 0) return '';
+            const nums = [...new Set(pages.map(Number).filter(n => !isNaN(n)))].sort((a, b) => a - b);
+            if (nums.length === 0) return '';
+            const contiguous = nums.every((n, i) => i === 0 || n === nums[i - 1] + 1);
+            if (contiguous) return nums.length === 1 ? `${nums[0]}` : `${nums[0]}-${nums[nums.length - 1]}`;
+            return nums.join('، ');
+        }
+
+        // تحويل نص المدخل إلى قائمة أرقام صفحات (يدعم "5-12" و "5، 6، 8")
+        function parsePagesInput(str) {
+            const pages = new Set();
+            String(str || '').split(/[\s,،;]+/).filter(Boolean).forEach(part => {
+                const range = part.match(/^(\d+)\s*[-–_]\s*(\d+)$/);
+                if (range) {
+                    let a = parseInt(range[1], 10), b = parseInt(range[2], 10);
+                    if (a > b) [a, b] = [b, a];
+                    for (let i = a; i <= b; i++) pages.add(i);
+                } else if (/^\d+$/.test(part)) {
+                    pages.add(parseInt(part, 10));
+                }
+            });
+            return [...pages].filter(n => n >= 1 && n <= 604).sort((a, b) => a - b);
+        }
+
+        // تنسيق قائمة الأجزاء
+        function formatJuz(juz) {
+            if (!Array.isArray(juz) || juz.length === 0) return '';
+            return [...juz].sort((a, b) => a - b).map(j => `الجزء ${j}`).join('، ');
+        }
+
+        // تسمية الصفحات المخزنة في جلسة تسميع (توافق مع البيانات القديمة)
+        function memPagesLabel(m) {
+            if (!m) return '';
+            if (m.pagesLabel) return m.pagesLabel;
+            if (Array.isArray(m.pages) && m.pages.length) return formatPages(m.pages);
+            return m.pageNumber ? String(m.pageNumber) : '';
         }
 
         // متغيرات التسميع
@@ -869,12 +1024,14 @@
         async function fetchAllStudents() {
             try {
                 const snap = await getDocs(collection(db, "students"));
-                allStudents = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                allStudents = sortStudentsAlpha(snap.docs.map(d => ({ id: d.id, ...d.data() })));
                 document.getElementById('totalStudents').textContent = allStudents.length;
                 populateStudentSelects();
                 renderStudents();
                 renderSessionStudents();
                 populateMemorizationSelect();
+                renderManagedTests();
+                renderManagedPages();
                 return allStudents;
             } catch (error) {
                 console.error('❌ خطأ في جلب الطلاب:', error);
@@ -887,7 +1044,9 @@
             selects.forEach(id => {
                 const el = document.getElementById(id);
                 if (el) {
+                    const prev = el.value;
                     el.innerHTML = allStudents.map(s => `<option value="${s.id}">${escapeHtml(s.name)} (${escapeHtml(s.code || '')})</option>`).join('');
+                    if (prev && allStudents.some(s => s.id === prev)) el.value = prev;
                 }
             });
         }
@@ -921,6 +1080,221 @@
                 populateStudentSelects();
             }
         };
+
+        // ============== إدارة اختبارات الطالب (تعديل/حذف) ==============
+        function renderManagedTests() {
+            const container = document.getElementById('testsManageContainer');
+            if (!container) return;
+            const sid = document.getElementById('testStudent')?.value;
+            const student = allStudents.find(s => s.id === sid);
+            if (!student) {
+                container.innerHTML = '<p style="color:#666;">اختر طالباً لعرض اختباراته...</p>';
+                return;
+            }
+            const sections = [
+                { key: 'lessonTests', label: 'اختبارات الدروس' },
+                { key: 'tajweedTests', label: 'اختبارات التجويد' },
+                { key: 'memorizationTests', label: 'اختبارات الحفظ' }
+            ];
+            let html = '';
+            sections.forEach(sec => {
+                const arr = student[sec.key] || [];
+                html += `<h4 style="color: var(--primary-dark); margin: 14px 0 6px;">${sec.label}</h4>`;
+                if (arr.length === 0) {
+                    html += '<p style="color:#999; font-size:0.85rem;">لا توجد اختبارات</p>';
+                    return;
+                }
+                html += '<div class="data-table-container"><table class="data-table"><thead><tr><th>الاختبار</th><th>النتيجة</th><th>التاريخ</th><th>إجراءات</th></tr></thead><tbody>';
+                arr.forEach((t, i) => {
+                    html += `<tr>
+                        <td>${escapeHtml(t.testName || '')}</td>
+                        <td>${t.result != null ? t.result + '%' : ''}</td>
+                        <td>${escapeHtml(t.date || '')}</td>
+                        <td>
+                            <button class="btn btn-sm btn-warning" onclick="editTest('${student.id}','${sec.key}',${i})">تعديل</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteTest('${student.id}','${sec.key}',${i})">حذف</button>
+                        </td>
+                    </tr>`;
+                });
+                html += '</tbody></table></div>';
+            });
+            container.innerHTML = html;
+        }
+        window.renderManagedTests = renderManagedTests;
+
+        window.deleteTest = async (studentId, type, index) => {
+            if (!confirm('هل تريد حذف هذا الاختبار؟')) return;
+            try {
+                isProcessing = true;
+                showLoading('جاري الحذف...');
+                const sref = doc(db, "students", studentId);
+                const snap = await getDoc(sref);
+                const data = snap.data() || {};
+                const arr = data[type] || [];
+                arr.splice(index, 1);
+                await updateDoc(sref, { [type]: arr });
+                showToast('✅ تم حذف الاختبار', 'success');
+                await fetchAllStudents();
+            } catch (error) {
+                showToast(`❌ خطأ: ${error.message}`, 'error');
+            } finally {
+                hideLoading();
+                isProcessing = false;
+            }
+        };
+
+        window.editTest = (studentId, type, index) => {
+            const student = allStudents.find(s => s.id === studentId);
+            if (!student) return;
+            const t = (student[type] || [])[index];
+            if (!t) return;
+            document.getElementById('editTestStudentId').value = studentId;
+            document.getElementById('editTestType').value = type;
+            document.getElementById('editTestIndex').value = index;
+            document.getElementById('editTestName').value = t.testName || '';
+            document.getElementById('editTestResult').value = (t.result != null ? t.result : '');
+            document.getElementById('editTestDate').value = t.date || '';
+            document.getElementById('editTestModal').style.display = 'flex';
+        };
+
+        document.getElementById('saveTestEditBtn').addEventListener('click', async () => {
+            const studentId = document.getElementById('editTestStudentId').value;
+            const type = document.getElementById('editTestType').value;
+            const index = parseInt(document.getElementById('editTestIndex').value, 10);
+            const testName = document.getElementById('editTestName').value.trim();
+            const result = parseInt(document.getElementById('editTestResult').value, 10);
+            const date = document.getElementById('editTestDate').value;
+            if (!testName || isNaN(result) || result < 0 || result > 100) {
+                showToast('⚠️ أدخل اسم الاختبار ونتيجة بين 0 و 100', 'error');
+                return;
+            }
+            try {
+                isProcessing = true;
+                showLoading('جاري حفظ التعديل...');
+                const sref = doc(db, "students", studentId);
+                const snap = await getDoc(sref);
+                const data = snap.data() || {};
+                const arr = data[type] || [];
+                if (!arr[index]) throw new Error('لم يتم العثور على الاختبار');
+                arr[index] = { ...arr[index], testName, result, date: date || arr[index].date };
+                await updateDoc(sref, { [type]: arr });
+                showToast('✅ تم تعديل الاختبار', 'success');
+                closeModal('editTestModal');
+                await fetchAllStudents();
+            } catch (error) {
+                showToast(`❌ خطأ: ${error.message}`, 'error');
+            } finally {
+                hideLoading();
+                isProcessing = false;
+            }
+        });
+
+        // ============== إدارة المحصلات الشهرية (تعديل/حذف) ==============
+        const monthNameList = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+
+        function renderManagedPages() {
+            const container = document.getElementById('pagesManageContainer');
+            if (!container) return;
+            const sid = document.getElementById('pagesStudent')?.value;
+            const student = allStudents.find(s => s.id === sid);
+            if (!student) {
+                container.innerHTML = '<p style="color:#666;">اختر طالباً لعرض محصلاته...</p>';
+                return;
+            }
+            const arr = (student.monthlyPages || []).map((p, i) => ({ ...p, _index: i }))
+                .sort((a, b) => (b.year - a.year) || (b.month - a.month));
+            if (arr.length === 0) {
+                container.innerHTML = '<p style="color:#999; font-size:0.85rem;">لا توجد محصلات مسجلة</p>';
+                return;
+            }
+            let html = '<div class="data-table-container"><table class="data-table"><thead><tr><th>الشهر</th><th>السنة</th><th>الصفحات</th><th>الهدف</th><th>إجراءات</th></tr></thead><tbody>';
+            arr.forEach(p => {
+                html += `<tr>
+                    <td>${monthNameList[p.month - 1] || p.month}</td>
+                    <td>${p.year}</td>
+                    <td>${p.pages}</td>
+                    <td>${p.goal || 20}</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning" onclick="editPages('${student.id}',${p._index})">تعديل</button>
+                        <button class="btn btn-sm btn-danger" onclick="deletePages('${student.id}',${p._index})">حذف</button>
+                    </td>
+                </tr>`;
+            });
+            html += '</tbody></table></div>';
+            container.innerHTML = html;
+        }
+        window.renderManagedPages = renderManagedPages;
+
+        window.deletePages = async (studentId, index) => {
+            if (!confirm('هل تريد حذف هذه المحصلة الشهرية؟')) return;
+            try {
+                isProcessing = true;
+                showLoading('جاري الحذف...');
+                const sref = doc(db, "students", studentId);
+                const snap = await getDoc(sref);
+                const data = snap.data() || {};
+                const arr = data.monthlyPages || [];
+                arr.splice(index, 1);
+                await updateDoc(sref, { monthlyPages: arr });
+                showToast('✅ تم حذف المحصلة', 'success');
+                await fetchAllStudents();
+            } catch (error) {
+                showToast(`❌ خطأ: ${error.message}`, 'error');
+            } finally {
+                hideLoading();
+                isProcessing = false;
+            }
+        };
+
+        window.editPages = (studentId, index) => {
+            const student = allStudents.find(s => s.id === studentId);
+            if (!student) return;
+            const p = (student.monthlyPages || [])[index];
+            if (!p) return;
+            document.getElementById('editPagesStudentId').value = studentId;
+            document.getElementById('editPagesIndex').value = index;
+            document.getElementById('editPagesStudentName').textContent = student.name || '';
+            document.getElementById('editPagesMonth').value = p.month;
+            document.getElementById('editPagesYear').value = p.year;
+            document.getElementById('editPagesCount').value = p.pages;
+            document.getElementById('editPagesGoal').value = p.goal || 20;
+            document.getElementById('editPagesModal').style.display = 'flex';
+        };
+
+        document.getElementById('savePagesEditBtn').addEventListener('click', async () => {
+            const studentId = document.getElementById('editPagesStudentId').value;
+            const index = parseInt(document.getElementById('editPagesIndex').value, 10);
+            const month = parseInt(document.getElementById('editPagesMonth').value, 10);
+            const year = parseInt(document.getElementById('editPagesYear').value, 10);
+            const pages = parseInt(document.getElementById('editPagesCount').value, 10);
+            const goal = parseInt(document.getElementById('editPagesGoal').value, 10) || 20;
+            if (isNaN(month) || isNaN(year) || isNaN(pages) || pages < 0) {
+                showToast('⚠️ بيانات غير صحيحة', 'error');
+                return;
+            }
+            try {
+                isProcessing = true;
+                showLoading('جاري حفظ التعديل...');
+                const sref = doc(db, "students", studentId);
+                const snap = await getDoc(sref);
+                const data = snap.data() || {};
+                const arr = data.monthlyPages || [];
+                if (!arr[index]) throw new Error('لم يتم العثور على المحصلة');
+                arr[index] = { ...arr[index], month, year, pages, goal };
+                await updateDoc(sref, { monthlyPages: arr });
+                showToast('✅ تم تعديل المحصلة الشهرية', 'success');
+                closeModal('editPagesModal');
+                await fetchAllStudents();
+            } catch (error) {
+                showToast(`❌ خطأ: ${error.message}`, 'error');
+            } finally {
+                hideLoading();
+                isProcessing = false;
+            }
+        });
+
+        document.getElementById('testStudent').addEventListener('change', renderManagedTests);
+        document.getElementById('pagesStudent').addEventListener('change', renderManagedPages);
 
         function renderStudents() {
             const tbody = document.getElementById('studentsTableBody');
@@ -1026,7 +1400,7 @@
                             <span><i class="fas fa-calendar"></i> ${session.date || ''}</span>
                             <span><i class="fas fa-users"></i> ${(session.students || []).length} طالب</span>
                         </div>
-                        <p style="color: #666; font-size: 0.9rem;">الآيات: ${escapeHtml(session.verses || 'غير محدد')}</p>
+                        <p style="color: #666; font-size: 0.9rem;">الأجزاء: ${escapeHtml(formatJuz(session.juz) || session.verses || 'غير محدد')}</p>
                         <p><strong>الطلاب المشاركون:</strong> ${studentsList}</p>
                         <div style="margin-top: 10px;">
                             <h5 style="color: var(--primary-dark); margin-bottom: 5px;"><i class="fas fa-check-circle" style="color: var(--success);"></i> التقييمات:</h5>
@@ -1049,7 +1423,7 @@
             if (isProcessing) { showToast('⚠️ يرجى الانتظار...', 'warning'); return; }
             const title = document.getElementById('sessionTitle').value.trim();
             const date = document.getElementById('sessionDate').value || new Date().toISOString().split('T')[0];
-            const verses = document.getElementById('sessionVerses').value.trim();
+            const juz = [...document.getElementById('sessionJuz').selectedOptions].map(o => parseInt(o.value, 10));
             
             const selectedStudents = [];
             document.querySelectorAll('.session-student-checkbox:checked').forEach(cb => {
@@ -1063,14 +1437,14 @@
                 isProcessing = true;
                 showLoading('جاري إنشاء الحلقة...');
                 await addDoc(collection(db, "recitation_sessions"), {
-                    title, date, verses,
+                    title, date, juz,
                     students: selectedStudents,
                     evaluations: [],
                     createdAt: serverTimestamp()
                 });
                 showToast('✅ تم إنشاء حلقة التسميع بنجاح', 'success');
                 document.getElementById('sessionTitle').value = '';
-                document.getElementById('sessionVerses').value = '';
+                [...document.getElementById('sessionJuz').options].forEach(o => o.selected = false);
                 document.querySelectorAll('.session-student-checkbox').forEach(cb => cb.checked = false);
                 document.getElementById('sessionStudentSearch').value = '';
                 await fetchSessions();
@@ -1270,12 +1644,15 @@
                 return `
                     <div class="memorization-item">
                         <div class="item-info">
-                            <div class="surah">📖 التقدير: <span class="mem-grade ${memGradeClass}">${escapeHtml(memGrade || 'غير محدد')}</span> - صفحة ${m.pageNumber || ''}</div>
+                            <div class="surah">📖 التقدير: <span class="mem-grade ${memGradeClass}">${escapeHtml(memGrade || 'غير محدد')}</span>${memPagesLabel(m) ? ` - صفحة ${escapeHtml(memPagesLabel(m))}` : ''}</div>
                             <div class="details">${m.date || ''}</div>
                             <div class="item-evals">${evalsTags.join('')}</div>
                             ${m.notes ? `<div style="font-size: 0.8rem; color: #666; margin-top: 4px;">📝 ${escapeHtml(m.notes)}</div>` : ''}
                         </div>
                         <div class="item-score">${m.score || 0}%</div>
+                        <button class="btn btn-sm btn-warning" onclick="editMemorizationSession('${student.id}', ${originalIndex})" style="margin-right: 10px;">
+                            <i class="fas fa-edit"></i>
+                        </button>
                         <button class="btn btn-sm btn-danger" onclick="deleteMemorizationSession('${student.id}', ${originalIndex})" style="margin-right: 10px;">
                             <i class="fas fa-trash"></i>
                         </button>
@@ -1332,6 +1709,75 @@
                 isProcessing = false;
             }
         };
+
+        // ============== تعديل جلسة تسميع ==============
+        window.editMemorizationSession = (studentId, index) => {
+            const student = allStudents.find(s => s.id === studentId);
+            if (!student) return;
+            const m = (student.memorizations || [])[index];
+            if (!m) return;
+            document.getElementById('editMemStudentId').value = studentId;
+            document.getElementById('editMemIndex').value = index;
+            document.getElementById('editMemStudentName').textContent = student.name || '';
+            document.getElementById('editMemPages').value = memPagesLabel(m);
+            document.getElementById('editMemGrade').value = m.grade || '';
+            document.getElementById('editMemNotes').value = m.notes || '';
+            document.getElementById('editMemScore').value = (m.score != null ? m.score : '');
+            document.getElementById('editMemorizationModal').style.display = 'flex';
+        };
+
+        document.getElementById('saveMemorizationEditBtn').addEventListener('click', async () => {
+            const studentId = document.getElementById('editMemStudentId').value;
+            const index = parseInt(document.getElementById('editMemIndex').value, 10);
+            const pages = parsePagesInput(document.getElementById('editMemPages').value);
+            const grade = document.getElementById('editMemGrade').value;
+            const notes = document.getElementById('editMemNotes').value.trim();
+            const scoreRaw = document.getElementById('editMemScore').value;
+            if (pages.length === 0) { showToast('⚠️ الرجاء إدخال صفحات صحيحة', 'error'); return; }
+            if (!grade) { showToast('⚠️ الرجاء اختيار التقدير', 'error'); return; }
+            try {
+                isProcessing = true;
+                showLoading('جاري حفظ التعديل...');
+                const studentRef = doc(db, "students", studentId);
+                const snap = await getDoc(studentRef);
+                const data = snap.data() || {};
+                const memorizations = data.memorizations || [];
+                const target = memorizations[index];
+                if (!target) throw new Error('لم يتم العثور على الجلسة');
+                target.pages = pages;
+                target.pageNumber = pages[0];
+                target.pagesLabel = formatPages(pages);
+                target.grade = grade;
+                target.notes = notes;
+                if (scoreRaw !== '') {
+                    const s = Math.max(0, Math.min(100, parseInt(scoreRaw, 10)));
+                    if (!isNaN(s)) target.score = s;
+                }
+                let total = 0;
+                memorizations.forEach(x => total += (x.score || 0));
+                const avg = memorizations.length > 0 ? Math.round(total / memorizations.length) : 0;
+                await updateDoc(studentRef, {
+                    memorizations: memorizations,
+                    totalMemorizationScore: total,
+                    avgMemorizationScore: avg
+                });
+                showToast('✅ تم تعديل جلسة التسميع بنجاح', 'success');
+                closeModal('editMemorizationModal');
+                await fetchAllStudents();
+                const updatedStudent = allStudents.find(s => s.id === studentId);
+                if (updatedStudent) {
+                    currentMemorizationStudent = updatedStudent;
+                    loadMemorizationStudentInfo(updatedStudent);
+                    loadMemorizationHistory(updatedStudent);
+                }
+                updateMemorizationStats();
+            } catch (error) {
+                showToast(`❌ خطأ: ${error.message}`, 'error');
+            } finally {
+                hideLoading();
+                isProcessing = false;
+            }
+        });
 
         // كروت التقييم
         document.querySelectorAll('.memorization-card').forEach(card => {
@@ -1392,12 +1838,12 @@
                 return;
             }
             
-            const pageNumber = parseInt(document.getElementById('memPageNumber').value);
+            const pages = parsePagesInput(document.getElementById('memPageNumber').value);
             const grade = document.getElementById('memGrade').value;
             const notes = document.getElementById('memNotes')?.value?.trim() || '';
             
-            if (!pageNumber || pageNumber < 1 || pageNumber > 604) {
-                showToast('⚠️ الرجاء إدخال رقم صفحة صحيح (1-604)', 'error');
+            if (pages.length === 0) {
+                showToast('⚠️ الرجاء إدخال صفحات صحيحة (مثال: 5-12 أو 5، 6، 8)', 'error');
                 return;
             }
             
@@ -1409,7 +1855,9 @@
             const finalScore = Math.max(0, Math.min(100, totalPoints));
             
             const memorizationData = {
-                pageNumber: pageNumber,
+                pageNumber: pages[0],
+                pages: pages,
+                pagesLabel: formatPages(pages),
                 grade: grade,
                 date: new Date().toISOString().split('T')[0],
                 score: finalScore,
@@ -1575,6 +2023,26 @@
                             `).join('')}
                         </div>
                     ` : '<p style="font-size: 0.82rem; color: #999; margin-top: 6px;">لم يعلن عن الفائزين بعد</p>';
+                    const participantNames = (c.participants || []).map(p => typeof p === 'string' ? p : (p.name || ''));
+                    const participantsBlock = `
+                        <div style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #e0e0e0;">
+                            <strong style="color: var(--primary-dark); font-size: 0.9rem;"><i class="fas fa-users"></i> المشاركون بالترتيب (${participantNames.length}):</strong>
+                            ${participantNames.length > 0 ? `
+                                <div class="data-table-container" style="margin-top: 6px;">
+                                    <table class="data-table">
+                                        <thead><tr><th>#</th><th>الاسم</th><th>إجراء</th></tr></thead>
+                                        <tbody>
+                                            ${participantNames.map((name, i) => `<tr><td>${i + 1}</td><td>${escapeHtml(name)}</td><td><button class="btn btn-sm btn-danger" onclick="deleteParticipant('${c.id}',${i})">حذف</button></td></tr>`).join('')}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            ` : '<p style="font-size: 0.82rem; color: #999; margin-top: 6px;">لا يوجد مشاركون بعد</p>'}
+                            <div style="display: flex; gap: 8px; margin-top: 8px;">
+                                <input type="text" id="participantInput-${c.id}" class="form-input" placeholder="اسم المشارك الجديد..." style="flex: 1;">
+                                <button class="btn btn-sm btn-primary" onclick="addParticipant('${c.id}')">إضافة</button>
+                            </div>
+                        </div>
+                    `;
                     return `
                     <div class="item-card">
                         <div class="item-header">
@@ -1588,6 +2056,7 @@
                             ${c.type ? `<div><i class="fas fa-tag"></i> ${escapeHtml(c.type)}</div>` : ''}
                         </div>
                         ${winnersBlock}
+                        ${participantsBlock}
                         <div class="item-actions">
                             <button class="btn btn-sm btn-danger" onclick="deleteCompetition('${c.id}')">
                                 <i class="fas fa-trash"></i> حذف
@@ -1613,6 +2082,41 @@
             finally { hideLoading(); isProcessing = false; }
         };
 
+        window.addParticipant = async (compId) => {
+            const input = document.getElementById('participantInput-' + compId);
+            const name = input ? input.value.trim() : '';
+            if (!name) { showToast('⚠️ أدخل اسم المشارك', 'error'); return; }
+            try {
+                isProcessing = true;
+                const cref = doc(db, "competitions", compId);
+                const snap = await getDoc(cref);
+                const data = snap.data() || {};
+                const participants = data.participants || [];
+                participants.push({ name, joinedAt: new Date().toISOString() });
+                await updateDoc(cref, { participants });
+                showToast('✅ تم إضافة المشارك', 'success');
+                await loadCompetitions();
+            } catch (error) {
+                showToast(`❌ خطأ: ${error.message}`, 'error');
+            } finally { isProcessing = false; }
+        };
+
+        window.deleteParticipant = async (compId, index) => {
+            if (!confirm('حذف هذا المشارك؟')) return;
+            try {
+                const cref = doc(db, "competitions", compId);
+                const snap = await getDoc(cref);
+                const data = snap.data() || {};
+                const participants = data.participants || [];
+                participants.splice(index, 1);
+                await updateDoc(cref, { participants });
+                showToast('✅ تم الحذف', 'success');
+                await loadCompetitions();
+            } catch (error) {
+                showToast(`❌ خطأ: ${error.message}`, 'error');
+            }
+        };
+
         document.getElementById('saveCompetitionBtn').addEventListener('click', async () => {
             const title = document.getElementById('compTitle').value.trim();
             if (!title) { showToast('⚠️ أدخل العنوان', 'error'); return; }
@@ -1625,6 +2129,7 @@
                     endDate: document.getElementById('compEndDate').value,
                     location: document.getElementById('compLocation').value.trim(),
                     winners: [],
+                    participants: [],
                     createdAt: serverTimestamp()
                 });
                 showToast('✅ تم إضافة المسابقة', 'success');
@@ -2008,6 +2513,8 @@
                 if (t === 'competitions') loadCompetitions();
                 if (t === 'game-management') { loadGameManagement(); fetchQuestions().then(renderQuestions); }
                 if (t === 'recitation-sessions') { fetchSessions(); }
+                if (t === 'add-test') { renderManagedTests(); }
+                if (t === 'monthly-pages') { renderManagedPages(); }
                 if (t === 'memorization') { 
                     populateMemorizationSelect();
                     updateMemorizationStats();
@@ -2017,6 +2524,11 @@
 
         // ============== التشغيل ==============
         async function init() {
+            // تعبئة قائمة الأجزاء (1-30)
+            const juzSelect = document.getElementById('sessionJuz');
+            if (juzSelect && juzSelect.options.length === 0) {
+                juzSelect.innerHTML = Array.from({ length: 30 }, (_, i) => `<option value="${i + 1}">الجزء ${i + 1}</option>`).join('');
+            }
             watchSiteStatus();
             await fetchAllStudents();
             await fetchQuestions();
