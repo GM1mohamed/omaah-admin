@@ -502,6 +502,17 @@
         </div>
     </div>
 
+    <!-- مودال ملف الطالب -->
+    <div class="modal" id="studentProfileModal">
+        <div class="modal-content" style="max-width: 820px;">
+            <div class="modal-header">
+                <h3 id="studentProfileTitle">👤 ملف الطالب</h3>
+                <button class="close-btn" onclick="closeStudentProfile()">&times;</button>
+            </div>
+            <div id="studentProfileBody"></div>
+        </div>
+    </div>
+
     <!-- مودال تعديل جلسة التسميع -->
     <div class="modal" id="editMemorizationModal">
         <div class="modal-content">
@@ -1032,6 +1043,7 @@
                 populateMemorizationSelect();
                 renderManagedTests();
                 renderManagedPages();
+                if (currentProfileStudentId) renderStudentProfile(currentProfileStudentId);
                 return allStudents;
             } catch (error) {
                 console.error('❌ خطأ في جلب الطلاب:', error);
@@ -1296,6 +1308,441 @@
         document.getElementById('testStudent').addEventListener('change', renderManagedTests);
         document.getElementById('pagesStudent').addEventListener('change', renderManagedPages);
 
+        // ============== ملف الطالب (كل التفاصيل + تعديل) ==============
+        let currentProfileStudentId = null;
+        const islandNamesList = ['الانطلاق', 'الإيمان', 'العلم', 'التقوى', 'الأخلاق', 'الإتقان', 'النور', 'الفوز 🏆'];
+        const studentLevels = ['مبتدئ', 'متوسط', 'متقدم'];
+
+        function renderStudentProfile(studentId) {
+            const body = document.getElementById('studentProfileBody');
+            const title = document.getElementById('studentProfileTitle');
+            if (!body) return;
+            const student = allStudents.find(s => s.id === studentId);
+            if (!student) {
+                body.innerHTML = '<p style="color:#666;">لم يتم العثور على الطالب.</p>';
+                return;
+            }
+            if (title) title.textContent = `👤 ${student.name || 'ملف الطالب'}`;
+
+            const islandIndex = Math.min(student.current_island || 0, 7);
+            const memorizations = student.memorizations || [];
+            const memSum = memorizations.reduce((sum, m) => sum + (m.score || 0), 0);
+            const memAvg = memorizations.length > 0 ? Math.round(memSum / memorizations.length) : 0;
+            const totalPages = (student.monthlyPages || []).reduce((sum, p) => sum + (p.pages || 0), 0);
+
+            const levelOptions = studentLevels.map(l =>
+                `<option value="${l}" ${((student.overallLevel || 'مبتدئ') === l) ? 'selected' : ''}>${l}</option>`
+            ).join('');
+            const islandOptions = islandNamesList.map((n, i) =>
+                `<option value="${i}" ${i === islandIndex ? 'selected' : ''}>${n}</option>`
+            ).join('');
+            const monthOptions = monthNameList.map((n, i) => `<option value="${i + 1}">${n}</option>`).join('');
+
+            const testSections = [
+                { key: 'lessonTests', label: 'اختبارات الدروس' },
+                { key: 'tajweedTests', label: 'اختبارات التجويد' },
+                { key: 'memorizationTests', label: 'اختبارات الحفظ' }
+            ];
+            let testsHtml = '';
+            testSections.forEach(sec => {
+                const arr = student[sec.key] || [];
+                testsHtml += `<h5 style="color: var(--primary-dark); margin: 10px 0 6px;">${sec.label}</h5>`;
+                if (arr.length === 0) {
+                    testsHtml += '<p style="color:#999;font-size:0.82rem;">لا توجد اختبارات</p>';
+                    return;
+                }
+                testsHtml += '<table class="data-table"><thead><tr><th>الاختبار</th><th>النتيجة</th><th>التاريخ</th><th>إجراءات</th></tr></thead><tbody>';
+                arr.forEach((t, i) => {
+                    testsHtml += `<tr>
+                        <td>${escapeHtml(t.testName || '')}</td>
+                        <td>${t.result != null ? t.result + '%' : ''}</td>
+                        <td>${escapeHtml(t.date || '')}</td>
+                        <td>
+                            <button class="btn btn-sm btn-warning" onclick="editTest('${student.id}','${sec.key}',${i})">تعديل</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteTest('${student.id}','${sec.key}',${i})">حذف</button>
+                        </td>
+                    </tr>`;
+                });
+                testsHtml += '</tbody></table>';
+            });
+
+            const pagesArr = (student.monthlyPages || []).map((p, i) => ({ ...p, _index: i }))
+                .sort((a, b) => (b.year - a.year) || (b.month - a.month));
+            let pagesHtml;
+            if (pagesArr.length === 0) {
+                pagesHtml = '<p style="color:#999;font-size:0.82rem;">لا توجد محصلات مسجلة</p>';
+            } else {
+                pagesHtml = '<table class="data-table"><thead><tr><th>الشهر</th><th>السنة</th><th>الصفحات</th><th>الهدف</th><th>إجراءات</th></tr></thead><tbody>';
+                pagesArr.forEach(p => {
+                    pagesHtml += `<tr>
+                        <td>${monthNameList[p.month - 1] || p.month}</td>
+                        <td>${p.year}</td>
+                        <td>${p.pages}</td>
+                        <td>${p.goal || 20}</td>
+                        <td>
+                            <button class="btn btn-sm btn-warning" onclick="editPages('${student.id}',${p._index})">تعديل</button>
+                            <button class="btn btn-sm btn-danger" onclick="deletePages('${student.id}',${p._index})">حذف</button>
+                        </td>
+                    </tr>`;
+                });
+                pagesHtml += '</tbody></table>';
+            }
+
+            const memsArr = memorizations.map((m, i) => ({ ...m, _index: i }))
+                .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+            let memsHtml;
+            if (memsArr.length === 0) {
+                memsHtml = '<p style="color:#999;font-size:0.82rem;">لا توجد جلسات تسميع</p>';
+            } else {
+                memsHtml = '<table class="data-table"><thead><tr><th>التقدير</th><th>الصفحات</th><th>الدرجة</th><th>التاريخ</th><th>إجراءات</th></tr></thead><tbody>';
+                memsArr.forEach(m => {
+                    memsHtml += `<tr>
+                        <td>${escapeHtml(m.grade || '')}</td>
+                        <td>${escapeHtml(memPagesLabel(m) || '')}</td>
+                        <td>${m.score || 0}%</td>
+                        <td>${escapeHtml(m.date || '')}</td>
+                        <td>
+                            <button class="btn btn-sm btn-warning" onclick="editMemorizationSession('${student.id}',${m._index})">تعديل</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteMemorizationSession('${student.id}',${m._index})">حذف</button>
+                        </td>
+                    </tr>`;
+                });
+                memsHtml += '</tbody></table>';
+            }
+
+            const mySessions = (allSessions || []).filter(s => (s.students || []).includes(student.id));
+            let sessionsHtml;
+            if (mySessions.length === 0) {
+                sessionsHtml = '<p style="color:#999;font-size:0.82rem;">لا توجد حلقات لهذا الطالب</p>';
+            } else {
+                sessionsHtml = '<table class="data-table"><thead><tr><th>الحلقة</th><th>التاريخ</th><th>الأجزاء</th><th>تقييمي</th><th>إجراءات</th></tr></thead><tbody>';
+                mySessions.forEach(s => {
+                    const myEval = (s.evaluations || []).find(e => e.studentId === student.id);
+                    sessionsHtml += `<tr>
+                        <td>${escapeHtml(s.title || '')}</td>
+                        <td>${escapeHtml(s.date || '')}</td>
+                        <td>${escapeHtml(formatJuz(s.juz) || s.verses || '—')}</td>
+                        <td>${escapeHtml(myEval?.grade || 'غير مقيم')}</td>
+                        <td><button class="btn btn-sm btn-warning" onclick="openEvaluateSession('${s.id}')">تقييم</button></td>
+                    </tr>`;
+                });
+                sessionsHtml += '</tbody></table>';
+            }
+
+            body.innerHTML = `
+                <div class="card" style="margin-bottom: 14px;">
+                    <h4 style="color: var(--primary-dark); margin-bottom: 12px;"><i class="fas fa-id-card"></i> المعلومات الأساسية</h4>
+                    <div class="form-row">
+                        <div class="form-group"><label class="form-label">الاسم</label><input type="text" id="profileName" class="form-input" value="${escapeHtml(student.name || '')}"></div>
+                        <div class="form-group"><label class="form-label">الكود</label><input type="text" id="profileCode" class="form-input" value="${escapeHtml(student.code || '')}"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label class="form-label">المستوى</label><select id="profileLevel" class="form-select">${levelOptions}</select></div>
+                        <div class="form-group"><label class="form-label">آخر دخول</label><input type="text" class="form-input" value="${escapeHtml(student.lastLogin || '—')}" disabled></div>
+                    </div>
+                    <button class="btn btn-primary" onclick="saveStudentProfile('${student.id}')">💾 حفظ البيانات</button>
+                </div>
+
+                <div class="card" style="margin-bottom: 14px;">
+                    <h4 style="color: var(--primary-dark); margin-bottom: 12px;"><i class="fas fa-gamepad"></i> اللعبة</h4>
+                    <div class="form-row">
+                        <div class="form-group"><label class="form-label">الجزيرة الحالية</label><select id="profileIsland" class="form-select">${islandOptions}</select></div>
+                        <div class="form-group"><label class="form-label">النقاط</label><input type="number" id="profileScore" class="form-input" min="0" value="${student.game_score || 0}"></div>
+                    </div>
+                    <p style="font-size:0.85rem; color:#666; margin-bottom:12px;">الأسئلة المجاب عنها: ${(student.answeredQuestions || []).length}</p>
+                    <button class="btn btn-primary" onclick="saveStudentGame('${student.id}')">💾 حفظ اللعبة</button>
+                </div>
+
+                <div class="card" style="margin-bottom: 14px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
+                        <h4 style="color: var(--primary-dark); margin:0;"><i class="fas fa-clipboard-list"></i> الاختبارات</h4>
+                        <button class="btn btn-sm btn-success" onclick="toggleProfileAdd('profileAddTest')">➕ إضافة اختبار</button>
+                    </div>
+                    <div id="profileAddTest" style="display:none; background:#f8f9fa; border-radius:10px; padding:12px; margin-bottom:12px;">
+                        <div class="form-row">
+                            <div class="form-group"><label class="form-label">النوع</label><select id="profileTestType" class="form-select"><option value="lessonTests">اختبار درس</option><option value="tajweedTests">اختبار تجويد</option><option value="memorizationTests">اختبار قرآن</option></select></div>
+                            <div class="form-group"><label class="form-label">اسم الاختبار</label><input type="text" id="profileTestName" class="form-input"></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label class="form-label">النتيجة (من 100)</label><input type="number" id="profileTestResult" class="form-input" min="0" max="100"></div>
+                            <div class="form-group"><label class="form-label">التاريخ</label><input type="date" id="profileTestDate" class="form-input"></div>
+                        </div>
+                        <button class="btn btn-primary" onclick="addTestFromProfile('${student.id}')">💾 حفظ الاختبار</button>
+                    </div>
+                    ${testsHtml}
+                </div>
+
+                <div class="card" style="margin-bottom: 14px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
+                        <h4 style="color: var(--primary-dark); margin:0;"><i class="fas fa-calendar-alt"></i> الصفحات الشهرية <span style="font-size:0.8rem; color:#666;">(الإجمالي: ${totalPages})</span></h4>
+                        <button class="btn btn-sm btn-success" onclick="toggleProfileAdd('profileAddPages')">➕ إضافة محصلة شهرية</button>
+                    </div>
+                    <div id="profileAddPages" style="display:none; background:#f8f9fa; border-radius:10px; padding:12px; margin-bottom:12px;">
+                        <div class="form-row">
+                            <div class="form-group"><label class="form-label">الشهر</label><select id="profilePagesMonth" class="form-select">${monthOptions}</select></div>
+                            <div class="form-group"><label class="form-label">السنة</label><input type="number" id="profilePagesYear" class="form-input" value="${new Date().getFullYear()}"></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label class="form-label">عدد الصفحات</label><input type="number" id="profilePagesCount" class="form-input" min="0"></div>
+                            <div class="form-group"><label class="form-label">الهدف الشهري</label><input type="number" id="profilePagesGoal" class="form-input" value="20"></div>
+                        </div>
+                        <button class="btn btn-primary" onclick="addPagesFromProfile('${student.id}')">💾 حفظ المحصلة</button>
+                    </div>
+                    ${pagesHtml}
+                </div>
+
+                <div class="card" style="margin-bottom: 14px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
+                        <h4 style="color: var(--primary-dark); margin:0;"><i class="fas fa-book"></i> سجل التسميع <span style="font-size:0.8rem; color:#666;">(${memorizations.length} جلسة • المعدل: ${memAvg}%)</span></h4>
+                        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                            <button class="btn btn-sm btn-success" onclick="toggleProfileAdd('profileAddMem')">➕ تسميع سريع</button>
+                            <button class="btn btn-sm btn-info" onclick="goToMemorizationTab('${student.id}')">🎯 أداة التسميع التفصيلية</button>
+                        </div>
+                    </div>
+                    <div id="profileAddMem" style="display:none; background:#f8f9fa; border-radius:10px; padding:12px; margin-bottom:12px;">
+                        <div class="form-row">
+                            <div class="form-group"><label class="form-label">الصفحات (مثال: 5-12 أو 5، 6، 8)</label><input type="text" id="profileMemPages" class="form-input"></div>
+                            <div class="form-group"><label class="form-label">التقدير</label><select id="profileMemGrade" class="form-select"><option value="">-- اختر --</option><option value="ممتاز">ممتاز</option><option value="جيد جداً">جيد جداً</option><option value="جيد">جيد</option><option value="إعادة">إعادة</option></select></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label class="form-label">الدرجة (%)</label><input type="number" id="profileMemScore" class="form-input" min="0" max="100" value="100"></div>
+                            <div class="form-group"><label class="form-label">التاريخ</label><input type="date" id="profileMemDate" class="form-input"></div>
+                        </div>
+                        <div class="form-group"><label class="form-label">ملاحظات</label><textarea id="profileMemNotes" class="form-textarea" rows="2"></textarea></div>
+                        <button class="btn btn-primary" onclick="addMemorizationFromProfile('${student.id}')">💾 حفظ التسميع</button>
+                    </div>
+                    ${memsHtml}
+                </div>
+
+                <div class="card" style="margin-bottom: 14px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
+                        <h4 style="color: var(--primary-dark); margin:0;"><i class="fas fa-quran"></i> حلقات التسميع</h4>
+                        <button class="btn btn-sm btn-info" onclick="goToSessionsTab('${student.id}')">➕ إنشاء حلقة لهذا الطالب</button>
+                    </div>
+                    ${sessionsHtml}
+                </div>
+
+                <div class="card" style="border: 1px solid #f0c0c0;">
+                    <h4 style="color: #c62828; margin-bottom: 10px;"><i class="fas fa-exclamation-triangle"></i> منطقة الخطر</h4>
+                    <button class="btn btn-danger" onclick="deleteStudentProfile('${student.id}')">🗑 حذف الطالب نهائياً</button>
+                </div>
+            `;
+        }
+
+        window.openStudentProfile = (id) => {
+            currentProfileStudentId = id;
+            renderStudentProfile(id);
+            document.getElementById('studentProfileModal').style.display = 'flex';
+        };
+
+        window.closeStudentProfile = () => {
+            currentProfileStudentId = null;
+            closeModal('studentProfileModal');
+        };
+
+        window.saveStudentProfile = async (id) => {
+            const name = document.getElementById('profileName').value.trim();
+            const code = document.getElementById('profileCode').value.trim();
+            const level = document.getElementById('profileLevel').value;
+            if (!name) { showToast('⚠️ أدخل اسم الطالب', 'error'); return; }
+            if (code && allStudents.some(s => s.id !== id && String(s.code) === code)) {
+                showToast('⚠️ هذا الكود مستخدم لطالب آخر', 'error');
+                return;
+            }
+            try {
+                isProcessing = true;
+                showLoading('جاري حفظ البيانات...');
+                await updateDoc(doc(db, "students", id), { name, code, overallLevel: level });
+                const stored = localStorage.getItem('currentStudent');
+                if (stored) {
+                    try {
+                        const parsed = JSON.parse(stored);
+                        if (parsed.id === id) {
+                            localStorage.setItem('currentStudent', JSON.stringify({ ...parsed, name, code, overallLevel: level }));
+                        }
+                    } catch (e) { /* تجاهل */ }
+                }
+                showToast('✅ تم حفظ بيانات الطالب', 'success');
+                await fetchAllStudents();
+            } catch (error) {
+                showToast(`❌ خطأ: ${error.message}`, 'error');
+            } finally {
+                hideLoading();
+                isProcessing = false;
+            }
+        };
+
+        window.saveStudentGame = async (id) => {
+            const island = parseInt(document.getElementById('profileIsland').value, 10);
+            const score = parseInt(document.getElementById('profileScore').value, 10);
+            if (isNaN(score) || score < 0) { showToast('⚠️ أدخل قيمة نقاط صحيحة (0 فأكثر)', 'error'); return; }
+            try {
+                isProcessing = true;
+                showLoading('جاري حفظ بيانات اللعبة...');
+                await updateDoc(doc(db, "students", id), { current_island: island, game_score: score });
+                showToast('✅ تم حفظ بيانات اللعبة', 'success');
+                await fetchAllStudents();
+            } catch (error) {
+                showToast(`❌ خطأ: ${error.message}`, 'error');
+            } finally {
+                hideLoading();
+                isProcessing = false;
+            }
+        };
+
+        // ============== إضافة سجلات من ملف الطالب ==============
+        window.toggleProfileAdd = (id) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.style.display = (el.style.display === 'none' || !el.style.display) ? 'block' : 'none';
+        };
+
+        window.goToMemorizationTab = (studentId) => {
+            closeStudentProfile();
+            const tab = document.querySelector('.tab[data-tab="memorization"]');
+            if (tab) tab.click();
+            const sel = document.getElementById('memorizationStudent');
+            if (sel) {
+                sel.value = studentId;
+                sel.dispatchEvent(new Event('change'));
+            }
+        };
+
+        window.goToSessionsTab = (studentId) => {
+            closeStudentProfile();
+            const tab = document.querySelector('.tab[data-tab="recitation-sessions"]');
+            if (tab) tab.click();
+            const cb = document.querySelector(`.session-student-checkbox[value="${studentId}"]`);
+            if (cb) {
+                cb.checked = true;
+                cb.scrollIntoView({ block: 'center' });
+            } else {
+                showToast('ℹ️ ابحث عن الطالب في قائمة المشاركين', 'warning');
+            }
+        };
+
+        window.addTestFromProfile = async (studentId) => {
+            const type = document.getElementById('profileTestType').value;
+            const testName = document.getElementById('profileTestName').value.trim();
+            const result = parseInt(document.getElementById('profileTestResult').value, 10);
+            const date = document.getElementById('profileTestDate').value || new Date().toISOString().split('T')[0];
+            if (!testName || isNaN(result) || result < 0 || result > 100) {
+                showToast('⚠️ أدخل اسم الاختبار ونتيجة بين 0 و 100', 'error');
+                return;
+            }
+            try {
+                isProcessing = true;
+                showLoading('جاري حفظ الاختبار...');
+                const sref = doc(db, "students", studentId);
+                const snap = await getDoc(sref);
+                const data = snap.data() || {};
+                const arr = data[type] || [];
+                arr.push({ testName, result, date });
+                await updateDoc(sref, { [type]: arr });
+                showToast('✅ تم إضافة الاختبار', 'success');
+                await fetchAllStudents();
+            } catch (error) {
+                showToast(`❌ خطأ: ${error.message}`, 'error');
+            } finally {
+                hideLoading();
+                isProcessing = false;
+            }
+        };
+
+        window.addPagesFromProfile = async (studentId) => {
+            const month = parseInt(document.getElementById('profilePagesMonth').value, 10);
+            const year = parseInt(document.getElementById('profilePagesYear').value, 10);
+            const pages = parseInt(document.getElementById('profilePagesCount').value, 10);
+            const goal = parseInt(document.getElementById('profilePagesGoal').value, 10) || 20;
+            if (isNaN(month) || isNaN(year) || isNaN(pages) || pages < 0) {
+                showToast('⚠️ أكمل بيانات المحصلة', 'error');
+                return;
+            }
+            try {
+                isProcessing = true;
+                showLoading('جاري حفظ المحصلة...');
+                const sref = doc(db, "students", studentId);
+                const snap = await getDoc(sref);
+                const data = snap.data() || {};
+                const arr = (data.monthlyPages || []).filter(p => !(p.month === month && p.year === year));
+                arr.push({ month, year, pages, goal });
+                await updateDoc(sref, { monthlyPages: arr });
+                showToast('✅ تم حفظ المحصلة الشهرية', 'success');
+                await fetchAllStudents();
+            } catch (error) {
+                showToast(`❌ خطأ: ${error.message}`, 'error');
+            } finally {
+                hideLoading();
+                isProcessing = false;
+            }
+        };
+
+        window.addMemorizationFromProfile = async (studentId) => {
+            const pages = parsePagesInput(document.getElementById('profileMemPages').value);
+            const grade = document.getElementById('profileMemGrade').value;
+            const score = parseInt(document.getElementById('profileMemScore').value, 10);
+            const date = document.getElementById('profileMemDate').value || new Date().toISOString().split('T')[0];
+            const notes = document.getElementById('profileMemNotes').value.trim();
+            if (pages.length === 0) { showToast('⚠️ أدخل صفحات صحيحة (مثال: 5-12 أو 5، 6، 8)', 'error'); return; }
+            if (!grade) { showToast('⚠️ اختر التقدير', 'error'); return; }
+            const finalScore = isNaN(score) ? 100 : Math.max(0, Math.min(100, score));
+            const memorizationData = {
+                pageNumber: pages[0],
+                pages,
+                pagesLabel: formatPages(pages),
+                grade,
+                date,
+                score: finalScore,
+                evaluations: {},
+                notes
+            };
+            try {
+                isProcessing = true;
+                showLoading('جاري حفظ التسميع...');
+                const sref = doc(db, "students", studentId);
+                const snap = await getDoc(sref);
+                const data = snap.data() || {};
+                const memorizations = data.memorizations || [];
+                memorizations.push(memorizationData);
+                let total = 0;
+                memorizations.forEach(m => total += (m.score || 0));
+                const avg = memorizations.length > 0 ? Math.round(total / memorizations.length) : 0;
+                await updateDoc(sref, {
+                    memorizations,
+                    totalMemorizationScore: total,
+                    avgMemorizationScore: avg,
+                    lastMemorizationDate: date
+                });
+                showToast('✅ تم إضافة جلسة التسميع', 'success');
+                await fetchAllStudents();
+            } catch (error) {
+                showToast(`❌ خطأ: ${error.message}`, 'error');
+            } finally {
+                hideLoading();
+                isProcessing = false;
+            }
+        };
+
+        window.deleteStudentProfile = async (studentId) => {
+            const student = allStudents.find(s => s.id === studentId);
+            if (!student) return;
+            if (!confirm(`هل تريد حذف الطالب "${student.name || ''}" نهائياً؟`)) return;
+            if (!confirm('تأكيد أخير: سيتم حذف كل بيانات الطالب (اختبارات، تسميع، صفحات). لا يمكن التراجع.')) return;
+            try {
+                isProcessing = true;
+                showLoading('جاري حذف الطالب...');
+                await deleteDoc(doc(db, "students", studentId));
+                showToast('✅ تم حذف الطالب', 'success');
+                closeStudentProfile();
+                await fetchAllStudents();
+            } catch (error) {
+                showToast(`❌ خطأ: ${error.message}`, 'error');
+            } finally {
+                hideLoading();
+                isProcessing = false;
+            }
+        };
+
         function renderStudents() {
             const tbody = document.getElementById('studentsTableBody');
             if (allStudents.length === 0) {
@@ -1307,12 +1754,13 @@
                 const islandIndex = Math.min(s.current_island || 0, 7);
                 return `<tr>
                     <td>${i+1}</td>
-                    <td><strong>${escapeHtml(s.name || '')}</strong></td>
+                    <td><a href="#" onclick="openStudentProfile('${s.id}');return false;" style="color: var(--primary-dark); font-weight: 700; text-decoration: underline; cursor: pointer;">${escapeHtml(s.name || '')}</a></td>
                     <td>${escapeHtml(s.code || '')}</td>
                     <td>${escapeHtml(s.overallLevel || 'مبتدئ')}</td>
                     <td>🏝️ ${islandNames[islandIndex]}</td>
                     <td>${s.game_score || 0}</td>
                     <td>
+                        <button class="btn btn-sm btn-info" onclick="openStudentProfile('${s.id}')">التفاصيل</button>
                         <button class="btn btn-sm btn-warning" onclick="openEditIsland('${s.id}')">تغيير الجزيرة</button>
                     </td>
                 </tr>`;
