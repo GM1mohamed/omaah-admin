@@ -7,6 +7,43 @@
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="admin-style.css">
+    <style>
+        /* ===== بطاقة التصدير الشهري (صورة المشاركة) ===== */
+        #shareCard {
+            position: fixed;
+            left: -20000px;
+            top: 0;
+            width: 1080px;
+            box-sizing: border-box;
+            direction: rtl;
+            text-align: right;
+            font-family: 'Tajawal', sans-serif;
+            background: linear-gradient(155deg, #0f766e 0%, #115e59 52%, #042f2e 100%);
+            color: #fff;
+            padding: 56px 56px 44px;
+        }
+        #shareCard * { box-sizing: border-box; }
+        #shareCard .sc-institute { display: flex; justify-content: space-between; align-items: center; font-size: 30px; font-weight: 700; }
+        #shareCard .sc-badge { background: rgba(255,255,255,.16); border: 2px solid rgba(255,255,255,.35); border-radius: 999px; padding: 10px 26px; font-size: 26px; }
+        #shareCard .sc-month { font-size: 76px; font-weight: 900; line-height: 1.1; margin-top: 34px; }
+        #shareCard .sc-student { display: flex; gap: 22px; align-items: center; margin-top: 26px; background: rgba(255,255,255,.12); border: 2px solid rgba(255,255,255,.22); border-radius: 24px; padding: 24px 28px; }
+        #shareCard .sc-avatar { width: 96px; height: 96px; border-radius: 50%; background: #14b8a6; display: flex; align-items: center; justify-content: center; font-size: 46px; font-weight: 900; color: #042f2e; }
+        #shareCard .sc-name { font-size: 44px; font-weight: 800; }
+        #shareCard .sc-sub { font-size: 26px; opacity: .85; margin-top: 6px; }
+        #shareCard .sc-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px; margin-top: 30px; }
+        #shareCard .sc-tile { background: #fff; color: #0f172a; border-radius: 24px; padding: 26px 28px; box-shadow: 0 12px 30px rgba(0,0,0,.18); }
+        #shareCard .sc-tile .t { font-size: 26px; color: #0f766e; font-weight: 700; }
+        #shareCard .sc-tile .v { font-size: 60px; font-weight: 900; color: #0f172a; margin-top: 8px; line-height: 1; }
+        #shareCard .sc-tile .s { font-size: 24px; color: #64748b; margin-top: 10px; }
+        #shareCard .sc-bar { height: 16px; background: #e2e8f0; border-radius: 999px; overflow: hidden; margin-top: 16px; }
+        #shareCard .sc-bar > span { display: block; height: 100%; background: linear-gradient(90deg, #14b8a6, #0d9488); border-radius: 999px; }
+        #shareCard .sc-list { background: rgba(255,255,255,.12); border: 2px solid rgba(255,255,255,.22); border-radius: 24px; padding: 26px 30px; margin-top: 28px; }
+        #shareCard .sc-list h4 { font-size: 30px; margin: 0 0 14px; }
+        #shareCard .sc-list ul { margin: 0; padding-right: 30px; }
+        #shareCard .sc-list li { font-size: 27px; line-height: 1.75; margin-bottom: 6px; }
+        #shareCard .sc-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 30px; font-size: 24px; opacity: .85; border-top: 2px dashed rgba(255,255,255,.3); padding-top: 22px; }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
     <header class="app-header">
@@ -501,6 +538,9 @@
             <button id="saveQuestionBtn" class="btn btn-primary" style="width: 100%;">💾 حفظ السؤال</button>
         </div>
     </div>
+
+    <!-- حاوية بطاقة المشاركة (خارج الشاشة) -->
+    <div id="shareCard"></div>
 
     <!-- مودال ملف الطالب -->
     <div class="modal" id="studentProfileModal">
@@ -1337,6 +1377,9 @@
                 `<option value="${i}" ${i === islandIndex ? 'selected' : ''}>${n}</option>`
             ).join('');
             const monthOptions = monthNameList.map((n, i) => `<option value="${i + 1}">${n}</option>`).join('');
+            const shareMonthOptions = monthNameList.map((n, i) =>
+                `<option value="${i + 1}" ${((i + 1) === new Date().getMonth() + 1) ? 'selected' : ''}>${n}</option>`
+            ).join('');
 
             const testSections = [
                 { key: 'lessonTests', label: 'اختبارات الدروس' },
@@ -1520,6 +1563,16 @@
                         <button class="btn btn-sm btn-info" onclick="goToSessionsTab('${student.id}')">➕ إنشاء حلقة لهذا الطالب</button>
                     </div>
                     ${sessionsHtml}
+                </div>
+
+                <div class="card" style="margin-bottom: 14px;">
+                    <h4 style="color: var(--primary-dark); margin-bottom: 10px;"><i class="fas fa-share-alt"></i> تصدير صورة شهرية</h4>
+                    <div class="form-row">
+                        <div class="form-group"><label class="form-label">الشهر</label><select id="shareMonth" class="form-select">${shareMonthOptions}</select></div>
+                        <div class="form-group"><label class="form-label">السنة</label><input type="number" id="shareYear" class="form-input" value="${new Date().getFullYear()}"></div>
+                    </div>
+                    <p style="font-size:0.85rem; color:#666; margin-bottom:12px;">تُجهَّز صورة تقرير باسم الطالب وشهره وما أنجزه، جاهزة للمشاركة.</p>
+                    <button class="btn btn-primary" onclick="exportMonthlyShare('${student.id}')">🖼 تصدير صورة الشهر</button>
                 </div>
 
                 <div class="card" style="border: 1px solid #f0c0c0;">
@@ -1737,6 +1790,139 @@
                 await fetchAllStudents();
             } catch (error) {
                 showToast(`❌ خطأ: ${error.message}`, 'error');
+            } finally {
+                hideLoading();
+                isProcessing = false;
+            }
+        };
+
+        // ============== تصدير صورة الشهر ==============
+        function buildShareMetrics(student, month, year) {
+            const inMonth = d => {
+                if (!d) return false;
+                const p = String(d).split('-');
+                return p.length >= 2 && parseInt(p[0], 10) === year && parseInt(p[1], 10) === month;
+            };
+            const mp = (student.monthlyPages || []).find(p => p.month === month && p.year === year);
+            const pagesDone = mp ? (mp.pages || 0) : 0;
+            const pagesGoal = mp && mp.goal ? mp.goal : 20;
+
+            const tests = [];
+            ['lessonTests', 'tajweedTests', 'memorizationTests'].forEach(k => {
+                (student[k] || []).forEach(t => { if (inMonth(t.date)) tests.push(t); });
+            });
+            const testsAvg = tests.length ? Math.round(tests.reduce((s, t) => s + (t.result || 0), 0) / tests.length) : 0;
+
+            const mems = (student.memorizations || []).filter(m => inMonth(m.date));
+            const memAvg = mems.length ? Math.round(mems.reduce((s, m) => s + (m.score || 0), 0) / mems.length) : 0;
+            const memPages = mems.reduce((s, m) => s + (Array.isArray(m.pages) && m.pages.length ? m.pages.length : 1), 0);
+
+            const grades = {};
+            mems.forEach(m => { const g = m.grade || 'غير محدد'; grades[g] = (grades[g] || 0) + 1; });
+
+            return { pagesDone, pagesGoal, tests, testsAvg, mems, memAvg, memPages, grades };
+        }
+
+        function buildShareCardHTML(student, month, year) {
+            const m = buildShareMetrics(student, month, year);
+            const monthLabel = monthNameList[month - 1] || '';
+            const pct = Math.max(0, Math.min(100, m.pagesGoal ? Math.round((m.pagesDone / m.pagesGoal) * 100) : 0));
+            const gradeSummary = Object.keys(m.grades).map(g => `${m.grades[g]} ${g}`).join(' • ');
+
+            const rows = [];
+            if (m.pagesDone) rows.push(`✅ حفظ <b>${m.pagesDone}</b> صفحة${m.pagesGoal ? ` من هدف <b>${m.pagesGoal}</b> صفحة` : ''}`);
+            if (m.mems.length) rows.push(`✅ قام بـ <b>${m.mems.length}</b> جلسة تسميع لـ <b>${m.memPages}</b> صفحة${gradeSummary ? ` (التقديرات: ${gradeSummary})` : ''}`);
+            if (m.tests.length) rows.push(`✅ أنجز <b>${m.tests.length}</b> اختبار بمتوسط <b>${m.testsAvg}%</b>`);
+            if ((student.game_score || 0) > 0) rows.push(`✅ جمع <b>${student.game_score}</b> نقطة في التحدي`);
+            if (rows.length === 0) rows.push('لم تُسجَّل إنجازات لهذا الشهر بعد');
+
+            const initial = (student.name || 'ط').trim().charAt(0) || 'ط';
+            const islandName = islandNamesList[Math.min(student.current_island || 0, 7)];
+            const today = new Date().toLocaleDateString('ar-EG');
+
+            return `
+                <div class="sc-institute">
+                    <span>🕌 معهد جيل الأمة</span>
+                    <span class="sc-badge">تقرير شهري</span>
+                </div>
+                <div class="sc-month">${monthLabel} ${year}</div>
+                <div class="sc-student">
+                    <div class="sc-avatar">${escapeHtml(initial)}</div>
+                    <div>
+                        <div class="sc-name">${escapeHtml(student.name || '')}</div>
+                        <div class="sc-sub">الكود: ${escapeHtml(student.code || '—')} • المستوى: ${escapeHtml(student.overallLevel || 'مبتدئ')}</div>
+                    </div>
+                </div>
+                <div class="sc-grid">
+                    <div class="sc-tile">
+                        <div class="t">📚 الصفحات الشهرية</div>
+                        <div class="v">${m.pagesDone}<span style="font-size:30px; color:#64748b;"> / ${m.pagesGoal}</span></div>
+                        <div class="sc-bar"><span style="width:${pct}%"></span></div>
+                    </div>
+                    <div class="sc-tile">
+                        <div class="t">📖 جلسات التسميع</div>
+                        <div class="v">${m.mems.length}</div>
+                        <div class="s">${m.memAvg ? `متوسط الدرجة ${m.memAvg}% • ${m.memPages} صفحة` : 'لا توجد درجات هذا الشهر'}</div>
+                    </div>
+                    <div class="sc-tile">
+                        <div class="t">📝 الاختبارات</div>
+                        <div class="v">${m.tests.length}</div>
+                        <div class="s">${m.tests.length ? `متوسط النتائج ${m.testsAvg}%` : 'لا توجد اختبارات هذا الشهر'}</div>
+                    </div>
+                    <div class="sc-tile">
+                        <div class="t">🎮 التحدي</div>
+                        <div class="v">${student.game_score || 0}</div>
+                        <div class="s">${escapeHtml(islandName)}</div>
+                    </div>
+                </div>
+                <div class="sc-list">
+                    <h4>🌟 أبرز ما أنجزه</h4>
+                    <ul>${rows.map(r => `<li>${r}</li>`).join('')}</ul>
+                </div>
+                <div class="sc-foot">
+                    <span>${monthLabel} ${year}</span>
+                    <span>أُنشئت في ${today}</span>
+                </div>
+            `;
+        }
+
+        window.exportMonthlyShare = async (studentId) => {
+            const student = allStudents.find(s => s.id === studentId);
+            if (!student) { showToast('⚠️ لم يتم العثور على الطالب', 'error'); return; }
+
+            const month = parseInt(document.getElementById('shareMonth').value, 10);
+            const year = parseInt(document.getElementById('shareYear').value, 10) || new Date().getFullYear();
+            if (isNaN(month)) { showToast('⚠️ اختر شهراً صحيحاً', 'error'); return; }
+
+            if (!window.html2canvas) {
+                showToast('❌ تعذر تحميل أداة التصدير — تحقق من الاتصال بالإنترنت', 'error');
+                return;
+            }
+
+            const node = document.getElementById('shareCard');
+            node.innerHTML = buildShareCardHTML(student, month, year);
+
+            try {
+                isProcessing = true;
+                showLoading('جاري تجهيز صورة الشهر...');
+                if (document.fonts && document.fonts.ready) await document.fonts.ready;
+                await new Promise(r => setTimeout(r, 120));
+
+                const canvas = await window.html2canvas(node, {
+                    scale: 2,
+                    backgroundColor: null,
+                    useCORS: true,
+                    logging: false
+                });
+
+                const link = document.createElement('a');
+                const monthLabel = monthNameList[month - 1] || month;
+                link.download = `${(student.name || 'طالب').replace(/[\\/:*?"<>|]/g, '')} - ${monthLabel} ${year}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                showToast('✅ تم تصدير صورة الشهر', 'success');
+            } catch (error) {
+                showToast(`❌ خطأ في التصدير: ${error.message}`, 'error');
             } finally {
                 hideLoading();
                 isProcessing = false;
