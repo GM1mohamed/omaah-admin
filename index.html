@@ -18,28 +18,40 @@
             direction: rtl;
             text-align: right;
             font-family: 'Tajawal', sans-serif;
-            background: linear-gradient(155deg, #0f766e 0%, #115e59 52%, #042f2e 100%);
-            color: #fff;
-            padding: 56px 56px 44px;
+            background: #f6eadc;
+            color: #1f2a2e;
+            padding: 0;
+            overflow: hidden;
+            border-radius: 44px;
         }
         #shareCard * { box-sizing: border-box; }
+        #shareCard .sc-hero { position: relative; overflow: hidden; padding: 54px 56px 50px; background: linear-gradient(145deg, #0f766e 0%, #115e59 46%, #0d3b3a 100%); color: #fff; border-bottom: 8px solid #d9b98c; border-radius: 44px 44px 0 0; }
+        #shareCard .sc-deco { position: absolute; border-radius: 50%; }
+        #shareCard .sc-deco-1 { width: 460px; height: 460px; top: -210px; left: -150px; background: rgba(255,255,255,.07); }
+        #shareCard .sc-deco-2 { width: 340px; height: 340px; bottom: -190px; right: -120px; background: rgba(246,234,220,.1); }
+        #shareCard .sc-body { position: relative; padding: 40px 46px 38px; }
         #shareCard .sc-institute { display: flex; justify-content: space-between; align-items: center; font-size: 30px; font-weight: 700; }
         #shareCard .sc-brand { display: flex; align-items: center; gap: 20px; }
+        #shareCard .sc-brand-name { font-size: 36px; font-weight: 800; }
         #shareCard .sc-logo { width: 112px; height: 112px; border-radius: 26px; object-fit: cover; border: 3px solid rgba(255,255,255,.55); box-shadow: 0 10px 24px rgba(0,0,0,.28); background: #f6eadc; display: block; }
         #shareCard .sc-badge { background: rgba(255,255,255,.16); border: 2px solid rgba(255,255,255,.35); border-radius: 999px; padding: 10px 26px; font-size: 26px; }
-        #shareCard .sc-month { font-size: 76px; font-weight: 900; line-height: 1.1; margin-top: 34px; }
-        #shareCard .sc-student { display: flex; gap: 22px; align-items: center; margin-top: 26px; background: rgba(255,255,255,.12); border: 2px solid rgba(255,255,255,.22); border-radius: 24px; padding: 24px 28px; }
-        #shareCard .sc-avatar { width: 96px; height: 96px; border-radius: 50%; background: #14b8a6; display: flex; align-items: center; justify-content: center; font-size: 46px; font-weight: 900; color: #042f2e; }
+        #shareCard .sc-month { position: relative; font-size: 98px; font-weight: 900; line-height: 1; margin-top: 48px; }
+        #shareCard .sc-month .sc-year { font-size: 46px; font-weight: 700; opacity: .7; margin-right: 22px; vertical-align: middle; }
+        #shareCard .sc-accent { position: relative; margin-top: 26px; width: 210px; height: 10px; border-radius: 999px; background: linear-gradient(90deg, #f3d9a4, #d9b98c); }
+        #shareCard .sc-student { position: relative; display: flex; gap: 24px; align-items: center; margin-top: 36px; background: rgba(255,255,255,.1); border: 2px solid rgba(255,255,255,.2); border-radius: 28px; padding: 26px 30px; }
+        #shareCard .sc-avatar { width: 106px; height: 106px; flex-shrink: 0; border-radius: 50%; background: linear-gradient(135deg, #f6eadc, #d9b98c); display: flex; align-items: center; justify-content: center; font-size: 50px; font-weight: 900; color: #0f3f3d; }
         #shareCard .sc-name { font-size: 44px; font-weight: 800; }
         #shareCard .sc-sub { font-size: 26px; opacity: .85; margin-top: 6px; }
-        #shareCard .sc-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px; margin-top: 30px; }
-        #shareCard .sc-tile { background: #fff; color: #0f172a; border-radius: 24px; padding: 26px 28px; box-shadow: 0 12px 30px rgba(0,0,0,.18); }
-        #shareCard .sc-tile .t { font-size: 26px; color: #0f766e; font-weight: 700; }
-        #shareCard .sc-tile .v { font-size: 60px; font-weight: 900; color: #0f172a; margin-top: 8px; line-height: 1; }
-        #shareCard .sc-tile .s { font-size: 24px; color: #64748b; margin-top: 10px; }
-        #shareCard .sc-bar { height: 16px; background: #e2e8f0; border-radius: 999px; overflow: hidden; margin-top: 16px; }
-        #shareCard .sc-bar > span { display: block; height: 100%; background: linear-gradient(90deg, #14b8a6, #0d9488); border-radius: 999px; }
-        #shareCard .sc-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 30px; font-size: 24px; opacity: .85; border-top: 2px dashed rgba(255,255,255,.3); padding-top: 22px; }
+        #shareCard .sc-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+        #shareCard .sc-tile { background: #fff; color: #0f172a; border: 2px solid #efe2d3; border-radius: 30px; padding: 26px 28px; box-shadow: 0 16px 36px rgba(31,42,46,.08); }
+        #shareCard .sc-tile .t { display: flex; align-items: center; gap: 14px; font-size: 26px; color: #0f766e; font-weight: 800; }
+        #shareCard .sc-tile .ico { width: 56px; height: 56px; flex-shrink: 0; border-radius: 18px; background: #eaf5f3; display: flex; align-items: center; justify-content: center; font-size: 30px; }
+        #shareCard .sc-tile .v { font-size: 78px; font-weight: 900; color: #0f172a; margin-top: 18px; line-height: 1; }
+        #shareCard .sc-tile .v small { font-size: 34px; color: #94a3b8; font-weight: 800; }
+        #shareCard .sc-tile .s { font-size: 25px; color: #6b7280; font-weight: 600; margin-top: 12px; }
+        #shareCard .sc-bar { height: 18px; background: #eee3d5; border-radius: 999px; overflow: hidden; margin-top: 18px; }
+        #shareCard .sc-bar > span { display: block; height: 100%; background: linear-gradient(90deg, #14b8a6, #0f766e); border-radius: 999px; }
+        #shareCard .sc-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 36px; font-size: 25px; font-weight: 600; color: #7b6a58; border-top: 3px dashed #e2d1bd; padding-top: 26px; }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
@@ -1831,46 +1843,53 @@
             const today = new Date().toLocaleDateString('ar-EG');
 
             return `
-                <div class="sc-institute">
-                    <div class="sc-brand">
-                        <img class="sc-logo" src="logo.jpg" alt="شعار المعهد">
-                        <span>معهد جيل الأمة</span>
+                <div class="sc-hero">
+                    <div class="sc-deco sc-deco-1"></div>
+                    <div class="sc-deco sc-deco-2"></div>
+                    <div class="sc-institute">
+                        <div class="sc-brand">
+                            <img class="sc-logo" src="logo.jpg" alt="شعار المعهد">
+                            <span class="sc-brand-name">معهد جيل الأمة</span>
+                        </div>
+                        <span class="sc-badge">تقرير شهري</span>
                     </div>
-                    <span class="sc-badge">تقرير شهري</span>
-                </div>
-                <div class="sc-month">${monthLabel} ${year}</div>
-                <div class="sc-student">
-                    <div class="sc-avatar">${escapeHtml(initial)}</div>
-                    <div>
-                        <div class="sc-name">${escapeHtml(student.name || '')}</div>
-                        <div class="sc-sub">الكود: ${escapeHtml(student.code || '—')} • المستوى: ${escapeHtml(student.overallLevel || 'مبتدئ')}</div>
-                    </div>
-                </div>
-                <div class="sc-grid">
-                    <div class="sc-tile">
-                        <div class="t">📚 الصفحات الشهرية</div>
-                        <div class="v">${m.pagesDone}<span style="font-size:30px; color:#64748b;"> / ${m.pagesGoal}</span></div>
-                        <div class="sc-bar"><span style="width:${pct}%"></span></div>
-                    </div>
-                    <div class="sc-tile">
-                        <div class="t">📖 جلسات التسميع</div>
-                        <div class="v">${m.mems.length}</div>
-                        <div class="s">${m.memAvg ? `متوسط الدرجة ${m.memAvg}% • ${m.memPages} صفحة` : 'لا توجد درجات هذا الشهر'}</div>
-                    </div>
-                    <div class="sc-tile">
-                        <div class="t">📝 الاختبارات</div>
-                        <div class="v">${m.tests.length}</div>
-                        <div class="s">${m.tests.length ? `متوسط النتائج ${m.testsAvg}%` : 'لا توجد اختبارات هذا الشهر'}</div>
-                    </div>
-                    <div class="sc-tile">
-                        <div class="t">🎮 التحدي</div>
-                        <div class="v">${student.game_score || 0}</div>
-                        <div class="s">${escapeHtml(islandName)}</div>
+                    <div class="sc-month">${monthLabel}<span class="sc-year">${year}</span></div>
+                    <div class="sc-accent"></div>
+                    <div class="sc-student">
+                        <div class="sc-avatar">${escapeHtml(initial)}</div>
+                        <div>
+                            <div class="sc-name">${escapeHtml(student.name || '')}</div>
+                            <div class="sc-sub">الكود: ${escapeHtml(student.code || '—')} • المستوى: ${escapeHtml(student.overallLevel || 'مبتدئ')}</div>
+                        </div>
                     </div>
                 </div>
-                <div class="sc-foot">
-                    <span>${monthLabel} ${year}</span>
-                    <span>أُنشئت في ${today}</span>
+                <div class="sc-body">
+                    <div class="sc-grid">
+                        <div class="sc-tile">
+                            <div class="t"><span class="ico">📚</span> الصفحات الشهرية</div>
+                            <div class="v">${m.pagesDone}<small> / ${m.pagesGoal}</small></div>
+                            <div class="sc-bar"><span style="width:${pct}%"></span></div>
+                        </div>
+                        <div class="sc-tile">
+                            <div class="t"><span class="ico">📖</span> جلسات التسميع</div>
+                            <div class="v">${m.mems.length}</div>
+                            <div class="s">${m.memAvg ? `متوسط الدرجة ${m.memAvg}% • ${m.memPages} صفحة` : 'لا توجد درجات هذا الشهر'}</div>
+                        </div>
+                        <div class="sc-tile">
+                            <div class="t"><span class="ico">📝</span> الاختبارات</div>
+                            <div class="v">${m.tests.length}</div>
+                            <div class="s">${m.tests.length ? `متوسط النتائج ${m.testsAvg}%` : 'لا توجد اختبارات هذا الشهر'}</div>
+                        </div>
+                        <div class="sc-tile">
+                            <div class="t"><span class="ico">🎮</span> التحدي</div>
+                            <div class="v">${student.game_score || 0}</div>
+                            <div class="s">${escapeHtml(islandName)}</div>
+                        </div>
+                    </div>
+                    <div class="sc-foot">
+                        <span>🌱 استمر في التقدّم</span>
+                        <span>أُنشئت في ${today}</span>
+                    </div>
                 </div>
             `;
         }
