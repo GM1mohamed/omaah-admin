@@ -24,6 +24,8 @@
         }
         #shareCard * { box-sizing: border-box; }
         #shareCard .sc-institute { display: flex; justify-content: space-between; align-items: center; font-size: 30px; font-weight: 700; }
+        #shareCard .sc-brand { display: flex; align-items: center; gap: 20px; }
+        #shareCard .sc-logo { width: 112px; height: 112px; border-radius: 26px; object-fit: cover; border: 3px solid rgba(255,255,255,.55); box-shadow: 0 10px 24px rgba(0,0,0,.28); background: #f6eadc; display: block; }
         #shareCard .sc-badge { background: rgba(255,255,255,.16); border: 2px solid rgba(255,255,255,.35); border-radius: 999px; padding: 10px 26px; font-size: 26px; }
         #shareCard .sc-month { font-size: 76px; font-weight: 900; line-height: 1.1; margin-top: 34px; }
         #shareCard .sc-student { display: flex; gap: 22px; align-items: center; margin-top: 26px; background: rgba(255,255,255,.12); border: 2px solid rgba(255,255,255,.22); border-radius: 24px; padding: 24px 28px; }
@@ -37,10 +39,6 @@
         #shareCard .sc-tile .s { font-size: 24px; color: #64748b; margin-top: 10px; }
         #shareCard .sc-bar { height: 16px; background: #e2e8f0; border-radius: 999px; overflow: hidden; margin-top: 16px; }
         #shareCard .sc-bar > span { display: block; height: 100%; background: linear-gradient(90deg, #14b8a6, #0d9488); border-radius: 999px; }
-        #shareCard .sc-list { background: rgba(255,255,255,.12); border: 2px solid rgba(255,255,255,.22); border-radius: 24px; padding: 26px 30px; margin-top: 28px; }
-        #shareCard .sc-list h4 { font-size: 30px; margin: 0 0 14px; }
-        #shareCard .sc-list ul { margin: 0; padding-right: 30px; }
-        #shareCard .sc-list li { font-size: 27px; line-height: 1.75; margin-bottom: 6px; }
         #shareCard .sc-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 30px; font-size: 24px; opacity: .85; border-top: 2px dashed rgba(255,255,255,.3); padding-top: 22px; }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -1827,14 +1825,6 @@
             const m = buildShareMetrics(student, month, year);
             const monthLabel = monthNameList[month - 1] || '';
             const pct = Math.max(0, Math.min(100, m.pagesGoal ? Math.round((m.pagesDone / m.pagesGoal) * 100) : 0));
-            const gradeSummary = Object.keys(m.grades).map(g => `${m.grades[g]} ${g}`).join(' • ');
-
-            const rows = [];
-            if (m.pagesDone) rows.push(`✅ حفظ <b>${m.pagesDone}</b> صفحة${m.pagesGoal ? ` من هدف <b>${m.pagesGoal}</b> صفحة` : ''}`);
-            if (m.mems.length) rows.push(`✅ قام بـ <b>${m.mems.length}</b> جلسة تسميع لـ <b>${m.memPages}</b> صفحة${gradeSummary ? ` (التقديرات: ${gradeSummary})` : ''}`);
-            if (m.tests.length) rows.push(`✅ أنجز <b>${m.tests.length}</b> اختبار بمتوسط <b>${m.testsAvg}%</b>`);
-            if ((student.game_score || 0) > 0) rows.push(`✅ جمع <b>${student.game_score}</b> نقطة في التحدي`);
-            if (rows.length === 0) rows.push('لم تُسجَّل إنجازات لهذا الشهر بعد');
 
             const initial = (student.name || 'ط').trim().charAt(0) || 'ط';
             const islandName = islandNamesList[Math.min(student.current_island || 0, 7)];
@@ -1842,7 +1832,10 @@
 
             return `
                 <div class="sc-institute">
-                    <span>🕌 معهد جيل الأمة</span>
+                    <div class="sc-brand">
+                        <img class="sc-logo" src="logo.jpg" alt="شعار المعهد">
+                        <span>معهد جيل الأمة</span>
+                    </div>
                     <span class="sc-badge">تقرير شهري</span>
                 </div>
                 <div class="sc-month">${monthLabel} ${year}</div>
@@ -1875,10 +1868,6 @@
                         <div class="s">${escapeHtml(islandName)}</div>
                     </div>
                 </div>
-                <div class="sc-list">
-                    <h4>🌟 أبرز ما أنجزه</h4>
-                    <ul>${rows.map(r => `<li>${r}</li>`).join('')}</ul>
-                </div>
                 <div class="sc-foot">
                     <span>${monthLabel} ${year}</span>
                     <span>أُنشئت في ${today}</span>
@@ -1906,7 +1895,14 @@
                 isProcessing = true;
                 showLoading('جاري تجهيز صورة الشهر...');
                 if (document.fonts && document.fonts.ready) await document.fonts.ready;
-                await new Promise(r => setTimeout(r, 120));
+                try {
+                    const logo = new Image();
+                    logo.src = 'logo.jpg';
+                    await logo.decode();
+                } catch (e) {
+                    console.warn('⚠️ تعذر تحميل الشعار مسبقاً:', e.message);
+                }
+                await new Promise(r => setTimeout(r, 150));
 
                 const canvas = await window.html2canvas(node, {
                     scale: 2,
